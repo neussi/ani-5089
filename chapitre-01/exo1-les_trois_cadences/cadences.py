@@ -1,19 +1,8 @@
-#!/usr/bin/env python3
-"""
-Exercice 1 : Les trois cadences
-ANI-IA 5089 — Coder pour la VR, l'XR et l'AR III
-"""
+# Calculs des budgets de temps par image
 
-def main():
-    system_latency = 8.0  # ms
-    frequencies = [72, 90, 120]
-    
-    print("Fréquence | Durée totale | Système | Reste pour le code")
-    print("-" * 55)
-    for freq in frequencies:
-        frame_time = 1000.0 / freq
-        code_time = frame_time - system_latency
-        print(f"{freq:3d} Hz    | {frame_time:5.1f} ms      | {system_latency:4.1f} ms  | {code_time:5.1f} ms")
+latence_systeme = 8.0
 
-if __name__ == "__main__":
-    main()
+for hz in [72, 90, 120]:
+    duree_image = 1000.0 / hz
+    reste = duree_image - latence_systeme
+    print(f"{hz} Hz: duree = {duree_image:.1f} ms, reste = {reste:.1f} ms")
