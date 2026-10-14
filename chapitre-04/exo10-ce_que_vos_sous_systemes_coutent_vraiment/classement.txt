@@ -1,0 +1,6 @@
+1. NK_SS_SHADOW : 5850 us (surcoût : +3750 us par rapport au rendu 3D seul)
+2. NK_SS_POSTPROCESS : 3740 us (surcoût : +1640 us par rapport au rendu 3D seul)
+3. NK_SS_PARTICLES : 2950 us (surcoût : +850 us par rapport au rendu 3D seul)
+4. NK_SS_UI2D : 2420 us (surcoût : +320 us par rapport au rendu 3D seul)
+5. NK_SS_TEXT : 2280 us (surcoût : +180 us par rapport au rendu 3D seul)
+6. NK_SS_RENDER3D : 2100 us (référence de base : 0 us)

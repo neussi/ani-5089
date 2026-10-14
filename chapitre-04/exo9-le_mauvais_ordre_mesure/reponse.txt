@@ -1,0 +1,5 @@
+Facteur :
+Le facteur d'écart correspond exactement aux coefficients de la matrice d'échelle appliquée : la position en y est multipliée par un facteur 2.5 (le centre passe de 1.25 m à 3.125 m), la position en z est multipliée par un facteur 0.1 (le mur passe de -2.0 m à -0.2 m, se rapprochant 10 fois trop près du centre), et la position en x serait multipliée par 4.0 si elle n'était pas nulle.
+
+Pourquoi :
+Dans l'ordre inversé Scale * Translate, la transformation matricielle applique la translation en premier aux sommets du maillage, puis applique la mise à l'échelle sur l'ensemble du résultat : S * (T * v) = S * (v + t) = S * v + S * t. Par conséquent, l'échelle n'agrandit pas seulement la géométrie du cube autour de son centre, elle attrape et multiplie également le vecteur de translation t. Le mur se retrouve donc propulsé à une position démesurément modifiée au lieu de rester à sa place assignée dans la pièce.

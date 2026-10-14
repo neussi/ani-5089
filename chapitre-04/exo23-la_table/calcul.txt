@@ -1,0 +1,5 @@
+Top:
+La face supérieure du plateau est à 0.75 m du sol et le plateau a une épaisseur de 5 cm (0.05 m). Le cube du moteur étant centré sur son origine, la coordonnée y de son centre se situe exactement à la moitié de son épaisseur en dessous de la face supérieure : y = 0.75 - (0.05 / 2) = 0.75 - 0.025 = 0.725 m. (Ou de manière équivalente depuis le dessous du plateau : y = 0.70 + 0.025 = 0.725 m).
+
+Legs:
+Les pieds partent du sol (y = 0 m) et s'arrêtent sous la face inférieure du plateau (y = 0.75 - 0.05 = 0.70 m). La hauteur totale des pieds est donc : h = 0.75 - 0.05 = 0.70 m (70 cm). Le cube représentant chaque pied étant centré sur son origine locale, la coordonnée y du centre des pieds est située à mi-hauteur au-dessus du sol : y = 0.70 / 2 = 0.35 m.

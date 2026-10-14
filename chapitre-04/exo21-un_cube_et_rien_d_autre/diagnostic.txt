@@ -1,0 +1,15 @@
+Lines:
+    NkDrawCall3D cubeDrawCall;
+    cubeDrawCall.mesh = meshSystem->GetCube();
+    cubeDrawCall.transform = cubeTransform;
+    cubeDrawCall.color = NkVec3f(1.0f, 1.0f, 1.0f); // Teinte blanche
+    cubeDrawCall.aabb = NkAABB3D(
+        cubePos - NkVec3f(0.5f, 0.5f, 0.5f),
+        cubePos + NkVec3f(0.5f, 0.5f, 0.5f)
+    );
+
+    // Soumission du cube
+    renderer->Submit(cubeDrawCall);
+
+Cause:
+Une boîte englobante non renseignée (le champ aabb laissé non défini dans NkDrawCall3D). Lorsque le champ aabb de l'objet reste à zéro ou non initialisé, le frustum culling du renderer considère que l'objet se trouve en dehors du champ de vision de la caméra et l'écarte silencieusement du rendu sans émettre le moindre message d'erreur. J'ai identifié cette cause en inspectant le compteur d'objets rejetés dans les statistiques du moteur et en constatant qu'en assignant explicitement les coordonnées réelles de l'AABB en coordonnées monde (cubePos ± 0.5), le cube est immédiatement devenu visible à l'écran.

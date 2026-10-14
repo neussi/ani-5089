@@ -1,0 +1,8 @@
+Observation:
+Lorsque la face avant de la porte et des fenêtres est placée exactement dans le même plan que la face intérieure du mur, les deux surfaces se superposent parfaitement. À l'écran, cela produit un papillonnement chaotique, des hachures en dents de scie et un clignotement scintillant de pixels alternant aléatoirement entre la couleur du mur et celle de l'ouverture au moindre mouvement de la caméra.
+
+Name:
+Ce défaut s'appelle le Z-fighting (ou conflit de tampon de profondeur / conflit de profondeur). Il est causé par la précision finie du Z-buffer (tampon de profondeur de la carte graphique) : lorsque deux polygones distincts possèdent exactement la même coordonnée de profondeur à la même position à l'écran, les imprécisions d'arrondi à virgule flottante font que le GPU ne peut déterminer de manière stable lequel des deux polygones est situé devant l'autre.
+
+Fix:
+J'ai décalé les trois panneaux de 0.005 m (soit 5 millimètres) vers l'intérieur de la pièce. Cette distance de 0.005 m est optimale car elle est suffisamment grande pour dépasser largement la marge d'erreur d'arrondi du Z-buffer (qui est de l'ordre de la fraction de millimètre dans cette plage de vue), garantissant ainsi une séparation franche et définitive des surfaces sans aucun clignotement résiduel. Elle n'est pas plus petite pour éviter tout risque de réapparition du conflit sous des angles rasants, et elle n'est pas plus grande pour que les panneaux restent visuellement plaqués contre la paroi sans paraître flotter ou former un décroché disproportionné.

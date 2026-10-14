@@ -1,0 +1,6 @@
+First: Vulkan 2.14 ms
+
+Second: Software 38.65 ms
+
+Differences:
+Sur le plan visuel, l'interface Vulkan bénéficie de l'anti-crénelage matériel (MSAA) et d'un filtrage bilinéaire net sur les bordures géométriques, produisant des arêtes lisses et un ombrage progressif propre. À l'inverse, le rendu Software (rendu logiciel exécuté sur CPU) présente un crénelage en escalier nettement visible sur les diagonales du plateau et des montants de fenêtres. De plus, la rastérisation logicielle simplifie le calcul de l'interpolation des normales et de la précision des profondeurs, ce qui se traduit par de légères bandes de quantification (banding) dans les dégradés d'ombre du sol et des coins de murs.

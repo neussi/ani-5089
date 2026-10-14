@@ -1,0 +1,11 @@
+Direction:
+Valeur testee : (0.85 ; -0.20 ; -0.25).
+Le soleil rasant projette des ombres etirees sur toute la largeur du sol jusqu'au mur oppose. La piece gagne nettement en lisibilite volumetrique sur le relief des pieds de la table et l'encadrement des fenetres, car les aretes verticales detachent un fort contraste d'eclairement entre les faces directes et les faces d'ombre. En revanche, elle perd en lisibilite dans l'angle arriere gauche, completement plonge dans l'obscurite de l'ombre portee du mur lateral.
+
+Intensity:
+Valeur testee : 0.6 (au lieu de 3.0).
+Avec cette intensite reduite, la scene subit un affaiblissement drastique du gradient de luminance. La lisibilite de la profondeur est fortement degradee : les faces du plateau et le sol ont des teintes trop proches, ce qui rend l'estimation de la distance de la table par rapport au mur du fond confuse. L'attenuation des rebonds de clarte gomme les details de contact entre les pieds et le sol.
+
+Shadows:
+Valeur testee : castShadow = false.
+La desactivation complete des ombres portees detruit toute sensation d'ancrage spatial. La lisibilite des contacts au sol est entierement perdue : les quatre pieds de la table semblent flotter au-dessus du sol sans que l'on puisse discerner s'ils touchent reellement la surface ou s'ils sont suspendus dans le vide. L'absence d'occlusion sous le plateau supprime la perception d'epaisseur et aplatit les volumes en simples surfaces 2D.

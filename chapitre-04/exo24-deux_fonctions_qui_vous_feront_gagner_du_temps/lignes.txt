@@ -1,0 +1,6 @@
+Before: 94
+
+After: 63
+
+Counting:
+J'ai compté l'ensemble des lignes de code source C++ effectives nécessaires pour déclarer la géométrie de la pièce, calculer les décalages de hauteur de chaque centre et instancier les matrices de transformation des objets (murs, ouvertures, plateau, pieds et objet posé). J'ai exclu du décompte les lignes vides d'espacement, les commentaires explicatifs et les déclarations génériques des structures de base (NkVec3f, NkMat4f). L'introduction des deux fonctions factorise le calcul systématique de la demi-hauteur et la composition Translate * Scale, éliminant 31 lignes répétitives et sources d'erreurs d'inattention.

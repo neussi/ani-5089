@@ -1,0 +1,12 @@
+Je garde :
+- NK_SS_RENDER3D (coût de base : 2100 us)
+- NK_SS_SHADOW (surcoût : 3750 us)
+- NK_SS_UI2D (surcoût : 320 us)
+- NK_SS_TEXT (surcoût : 180 us)
+Coût cumulé total : 6350 us (soit 6.35 ms), ce qui respecte largement le budget strict de 11 ms (11 000 us pour 90 Hz) avec une marge de sécurité de 4.65 ms.
+
+Pourquoi :
+- NK_SS_RENDER3D est indispensable puisqu'il constitue le moteur de rastérisation de base de la géométrie 3D de la pièce.
+- NK_SS_SHADOW est conservé malgré son coût élevé (+3750 us) car en réalité virtuelle, les ombres portées sont le signal perceptif premier permettant au cerveau de juger de la distance, de l'ancrage au sol et de l'échelle des objets. Sans ombre, les objets semblent flotter.
+- NK_SS_UI2D (+320 us) et NK_SS_TEXT (+180 us) sont conservés car leur coût est négligeable (0.5 ms cumulé) alors qu'ils sont essentiels pour afficher les menus, les retours utilisateurs et les informations textuelles dans le casque.
+- NK_SS_POSTPROCESS (+1640 us) et NK_SS_PARTICLES (+850 us) sont volontairement écartés : les passes de post-traitement consomment une bande passante mémoire excessive sur casque autonome (Tile-Based Deferred Rendering), et les effets de particules ne sont pas prioritaires pour la clarté spatiale de la pièce.

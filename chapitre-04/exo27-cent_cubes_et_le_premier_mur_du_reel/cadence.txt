@@ -1,0 +1,6 @@
+One by one: 450 cubes, 450 drawCalls, 58.4 fps
+
+Grouped: 1 drawCalls, 284.2 fps, 6200 cubes
+
+Found:
+La structure de dessin instancié NkDrawCall3DInstanced et la méthode SubmitInstanced, déclarées dans le fichier d'en-tête NKRenderer.h.
