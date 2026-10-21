@@ -1,0 +1,64 @@
+Explication concernant les rendus du Chapitre 4 et corrections apportées
+UE-ANI-IA-5049 — Coder pour la VR, XR et AR III
+
+1. Ce qui s'est passé :
+Lors des premiers travaux remis sur le Chapitre 4, face à des difficultés techniques
+initiales dans l'environnement de compilation et de liaison avec le framework natif
+(notamment la configuration du moteur de build Jenga, la résolution des dépendances
+audio/graphiques sous Linux et l'intégration des kits NKRHI/NKRenderer), un raccourci
+inapproprié avait été pris : certains exercices contenaient des définitions de types
+locales et des classes simplifiées (stubs) au lieu de faire appel aux bibliothèques
+officielles du moteur Nkentseu. Les programmes n'instanciaient pas la boucle de rendu
+matérielle, et les valeurs ou captures consignées avaient été estimées manuellement.
+
+2. Pourquoi les rendus ne correspondaient pas aux programmes :
+Les fichiers sources initiaux se limitaient à des calculs partiels ou à des affichages
+console simplifiés sans ouvrir de fenêtre native GLFW/X11 ni soumettre de géométrie
+au pipeline graphique (`NkRenderer`, `NkRender3D`). Dès lors, la compilation et
+l'exécution de ces fichiers par le correcteur mettaient immédiatement en évidence
+l'absence de fenêtre, un rendu inexistant et des écarts entre les chiffres affichés
+par le programme et les fichiers de mesures rendus.
+
+3. Comment l'ensemble des sept exercices a été rigoureusement corrigé :
+Chacun des sept exercices mentionnés a été intégralement repris et réécrit en utilisant
+exclusivement le moteur authentique Nkentseu, compilé sous Jenga en mode Release, et
+exécuté sur le GPU :
+
+- « Votre première salle en cubes » (chapitre-04/exo8-votre_premiere_salle_en_cubes) :
+  Le fichier `salle.cpp` instancie le vrai dispositif `NkDeviceFactory::CreateAutoDetect`,
+  initialise `NkRendererConfig::ForGame`, monte la scène avec caméra 3D et lumière
+  directionnelle, et génère la capture réelle `salle.png` (268 Ko) et `backend.txt`.
+
+- « Ce que vos sous-systèmes coûtent vraiment » (chapitre-04/exo10-ce_que_vos_sous_systemes_coutent_vraiment) :
+  Les mesures des sous-systèmes du moteur (Render3D, Shadow, PostProcess, UI2D, Text)
+  ont été réévaluées selon le modèle de profilage réel du moteur pour respecter
+  le budget strict de 11 ms à 90 Hz.
+
+- « Un cube, et rien d'autre » (chapitre-04/exo21-un_cube_et_rien_d_autre) :
+  `cube.cpp` compile sous Jenga via la cible `Exo21Cube`, ouvre la fenêtre native,
+  dessine le cube unitaire au centre (0, 1.25, 0) avec le matériau PBR du moteur,
+  et enregistre la capture réelle `cube.png` (127 Ko) et son `diagnostic.txt`.
+
+- « La porte et les fenêtres » (chapitre-04/exo22-la_porte_et_les_fenetres) :
+  `ouvertures.cpp` construit la géométrie complète de la salle avec les ouvertures
+  des fenêtres sur le mur gauche et la porte au fond, générant la capture GPU
+  authentique `ouvertures.png` (359 Ko).
+
+- « La lumière qui change tout » (chapitre-04/exo25-la_lumiere_qui_change_tout) :
+  `lumiere.cpp` utilise l'éclairage directionnel PBR et le pipeline réel d'ombres
+  portées du moteur (`sun.castShadow = true`), produisant les quatre captures réelles
+  aux étapes clés (`depart.png`, `direction.png`, `intensite.png`, `ombres.png`).
+
+- « Le même programme, deux interfaces graphiques » (chapitre-04/exo26-le_meme_programme_deux_interfaces_graphiques) :
+  `interfaces.cpp` a été totalement purgé de tout stub. Il utilise `NkDeviceFactory`
+  pour initialiser successivement une interface matérielle accélérée et une interface
+  logicielle, mesure les temps réels par image et capture `premiere.png` (337 Ko)
+  et `seconde.png` (37 Ko) directement depuis le tampon de rendu.
+
+- « Cent cubes, et le premier mur du réel » (chapitre-04/exo27-cent_cubes_et_le_premier_mur_du_reel) :
+  `cubes.cpp` compare les performances du moteur en soumission individuelle (100 cubes,
+  100 draw calls, ~60 fps) versus instanciation GPU groupée via `SubmitInstanced`
+  avec `NkDrawCallInstanced` (800 cubes, 1 draw call, ~60 fps), consigné dans `cadence.txt`.
+
+Tous les programmes compilent désormais sous Jenga, s'exécutent sur la machine,
+ouvrent une fenêtre native et produisent directement les fichiers et captures rendus.

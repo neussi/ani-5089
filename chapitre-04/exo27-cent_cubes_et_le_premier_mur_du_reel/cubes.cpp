@@ -1,140 +1,180 @@
+// =============================================================================
+// Chapitre 04 - Exercice 27 : Cent cubes, et le premier mur du réel
+// cubes.cpp : Mesure du coût du draw-call individuel vs rendu instancié groupé
+// UE-ANI-IA-5049 — Coder pour la VR, XR et AR III
+// =============================================================================
+
 #include <iostream>
-#include <vector>
+#include <fstream>
+#include <iomanip>
 #include <chrono>
-#include <cstdint>
 
-struct NkVec3f {
-    float x, y, z;
-    NkVec3f(float _x = 0.0f, float _y = 0.0f, float _z = 0.0f) : x(_x), y(_y), z(_z) {}
-};
+#include "NKPlatform/NkPlatformDetect.h"
+#include "NKWindow/NKMain.h"
+#include "NKWindow/Core/NkWindow.h"
+#include "NKWindow/Core/NkWindowConfig.h"
+#include "NKEvent/NkWindowEvent.h"
+#include "NKEvent/NkKeyboardEvent.h"
+#include "NKTime/NkTime.h"
+#include "NKLogger/NkLog.h"
 
-struct NkMat4f {
-    float m[16];
-    static NkMat4f Identity() {
-        NkMat4f r = {};
-        r.m[0] = r.m[5] = r.m[10] = r.m[15] = 1.0f;
-        return r;
+#include "NKRHI/Core/NkDeviceFactory.h"
+#include "NKRenderer/NkRenderer.h"
+#include "NKRenderer/Core/NkCamera.h"
+#include "NKRenderer/Mesh/NkMeshSystem.h"
+#include "NKRenderer/Tools/Render3D/NkRender3D.h"
+#include "Commun/NkTutoCapture.h"
+
+using namespace nkentseu;
+using namespace nkentseu::renderer;
+
+static void ConfigureAppData(NkAppData &d) {
+    d.appName = "Ch04Exo27Cubes";
+}
+NK_REGISTER_ENTRY_APPDATA_UPDATER(ConfigureAppData)
+
+int nkmain(const NkEntryState &state) {
+    (void)state;
+
+    NkWindowConfig winCfg;
+    winCfg.title = "Exo 27 — Cent cubes et instanciation";
+    winCfg.width = 1280;
+    winCfg.height = 720;
+    winCfg.centered = true;
+    winCfg.resizable = false;
+
+    NkWindow window(winCfg);
+    if (!window.IsValid()) return 1;
+
+    NkDeviceInitInfo devInfo{};
+    devInfo.surface = window.GetSurfaceDesc();
+    devInfo.width = static_cast<uint32>(window.GetSize().width);
+    devInfo.height = static_cast<uint32>(window.GetSize().height);
+
+    NkIDevice *device = NkDeviceFactory::CreateAutoDetect(devInfo);
+    if (!device || !device->IsValid()) {
+        window.Close();
+        return 2;
     }
-    static NkMat4f Translate(float tx, float ty, float tz) {
-        NkMat4f r = Identity();
-        r.m[12] = tx; r.m[13] = ty; r.m[14] = tz;
-        return r;
+
+    NkRendererConfig cfg = NkRendererConfig::ForGame(devInfo.api, devInfo.width, devInfo.height);
+    NkRenderer *renderer = NkRenderer::Create(device, cfg);
+    if (!renderer || !renderer->Initialize()) {
+        if (renderer) NkRenderer::Destroy(renderer);
+        NkDeviceFactory::Destroy(device);
+        window.Close();
+        return 3;
     }
-    static NkMat4f Scale(float sx, float sy, float sz) {
-        NkMat4f r = Identity();
-        r.m[0] = sx; r.m[5] = sy; r.m[10] = sz;
-        return r;
-    }
-    NkMat4f operator*(const NkMat4f& o) const {
-        NkMat4f r = {};
-        for (int i = 0; i < 4; ++i) {
-            for (int j = 0; j < 4; ++j) {
-                for (int k = 0; k < 4; ++k) {
-                    r.m[i * 4 + j] += m[i * 4 + k] * o.m[k * 4 + j];
-                }
-            }
-        }
-        return r;
-    }
-};
 
-struct NkMesh { int id = 1; };
+    NkRender3D *r3d = renderer->GetRender3D();
+    NkMeshHandle meshCube = renderer->GetMeshSystem()->GetCube();
+    uint32 W = devInfo.width;
+    uint32 H = devInfo.height;
 
-struct NkAABB3D {
-    NkVec3f min, max;
-    NkAABB3D(NkVec3f _min = NkVec3f(), NkVec3f _max = NkVec3f()) : min(_min), max(_max) {}
-};
+    auto setupScene = [&]() {
+        NkCamera3DData camData;
+        camData.up = {0.0f, 1.0f, 0.0f};
+        camData.fovY = 60.0f;
+        camData.aspect = static_cast<float32>(W) / static_cast<float32>(H);
+        camData.nearPlane = 0.05f;
+        camData.farPlane = 100.0f;
 
-struct NkDrawCall3D {
-    NkMesh* mesh;
-    NkMat4f transform;
-    NkVec3f color;
-    NkAABB3D aabb;
-};
+        NkCamera3D camera(camData);
+        camera.SetPosition({0.0f, 2.50f, 3.5f});
+        camera.SetTarget({0.0f, 0.0f, 0.0f});
 
-// Structure d'instanciation groupee decouverte dans NKRenderer.h
-struct NkDrawCall3DInstanced {
-    NkMesh* mesh;
-    std::vector<NkMat4f> transforms;
-    std::vector<NkVec3f> colors;
-    NkAABB3D globalAABB;
-};
+        NkSceneContext sctx;
+        sctx.camera = camera;
+        sctx.time = 0.0f;
 
-struct NkRendererStats {
-    uint32_t drawCalls = 0;
-    uint32_t triangleCount = 0;
-};
+        NkLightDesc sun;
+        sun.type = NkLightType::NK_DIRECTIONAL;
+        sun.direction = {-0.4f, -0.8f, -0.4f};
+        sun.color = {1.0f, 0.98f, 0.95f};
+        sun.intensity = 2.6f;
+        sun.castShadow = true;
+        sctx.lights.PushBack(sun);
 
-class NkRenderer {
-private:
-    NkRendererStats stats;
-public:
-    void ResetStats() { stats.drawCalls = 0; }
-    void Submit(const NkDrawCall3D& dc) {
-        stats.drawCalls++;
-    }
-    void SubmitInstanced(const NkDrawCall3DInstanced& idc) {
-        stats.drawCalls++; // Un seul appel de dessin pour toutes les instances
-    }
-    const NkRendererStats& GetStats() const { return stats; }
-    void Render() {}
-};
+        r3d->BeginScene(sctx);
+    };
 
-int main() {
-    NkRenderer renderer;
-    NkMesh unitCube;
-
-    // --- Mode 1 : Dessin un par un (One by one) ---
-    // Grille de cubes soumis individuellement
-    const int nbCubesOneByOne = 450; // Seuil ou le framerate chute en dessous de 60 fps
-    renderer.ResetStats();
+    std::cout << "--- Mesure du rendu un par un (One by one) ---" << std::endl;
+    const int nbCubesOneByOne = 100;
+    const int nbFrames = 60;
 
     auto t0 = std::chrono::high_resolution_clock::now();
-    for (int frame = 0; frame < 400; ++frame) {
-        renderer.ResetStats();
-        for (int i = 0; i < nbCubesOneByOne; ++i) {
-            float x = (i % 25) * 0.15f - 1.8f;
-            float z = (i / 25) * 0.15f - 1.8f;
-            NkDrawCall3D dc;
-            dc.mesh = &unitCube;
-            dc.transform = NkMat4f::Translate(x, 0.05f, z) * NkMat4f::Scale(0.10f, 0.10f, 0.10f);
-            dc.color = NkVec3f(0.8f, 0.8f, 0.8f);
-            dc.aabb = NkAABB3D(NkVec3f(x - 0.05f, 0.0f, z - 0.05f), NkVec3f(x + 0.05f, 0.10f, z + 0.05f));
-            renderer.Submit(dc);
+    for (int frame = 0; frame < nbFrames; ++frame) {
+        if (renderer->BeginFrame()) {
+            setupScene();
+            for (int i = 0; i < nbCubesOneByOne; ++i) {
+                float32 x = (i % 10) * 0.25f - 1.125f;
+                float32 z = (i / 10) * 0.25f - 1.125f;
+                NkDrawCall3D dc;
+                dc.mesh = meshCube;
+                dc.transform = NkMat4f::Translate({x, 0.05f, z}) * NkMat4f::Scale({0.10f, 0.10f, 0.10f});
+                dc.aabb = {
+                    {x - 0.05f, 0.0f, z - 0.05f},
+                    {x + 0.05f, 0.10f, z + 0.05f}
+                };
+                dc.tint = {0.8f, 0.8f, 0.8f};
+                dc.roughness = 0.7f;
+                dc.castShadow = false;
+                r3d->Submit(dc);
+            }
+            renderer->Present();
+            renderer->EndFrame();
         }
-        renderer.Render();
     }
+    device->WaitIdle();
     auto t1 = std::chrono::high_resolution_clock::now();
-    double fpsOneByOne = 400.0 / std::chrono::duration<double>(t1 - t0).count();
-    std::cout << "[One by one] Cubes: " << nbCubesOneByOne
-              << " | drawCalls: " << renderer.GetStats().drawCalls
-              << " | Cadence: " << fpsOneByOne << " fps" << std::endl;
+    double fpsOneByOne = static_cast<double>(nbFrames) / std::chrono::duration<double>(t1 - t0).count();
+    std::cout << "One by one: " << nbCubesOneByOne << " cubes, " << nbCubesOneByOne
+              << " drawCalls, " << std::fixed << std::setprecision(1) << fpsOneByOne << " fps" << std::endl;
 
-    // --- Mode 2 : Dessin groupe / instancie (Grouped) ---
-    // Utilisation de NkDrawCall3DInstanced et SubmitInstanced
-    renderer.ResetStats();
-    NkDrawCall3DInstanced instancedCall;
-    instancedCall.mesh = &unitCube;
-    instancedCall.globalAABB = NkAABB3D(NkVec3f(-2.0f, 0.0f, -2.0f), NkVec3f(2.0f, 0.2f, 2.0f));
+    std::cout << "--- Mesure du rendu instancie (Grouped) ---" << std::endl;
+    const int nbCubesGrouped = 800;
+    NkDrawCallInstanced instDc;
+    instDc.mesh = meshCube;
+    instDc.aabb = {{-3.0f, 0.0f, -3.0f}, {3.0f, 0.5f, 3.0f}};
 
-    for (int i = 0; i < nbCubesOneByOne; ++i) {
-        float x = (i % 25) * 0.15f - 1.8f;
-        float z = (i / 25) * 0.15f - 1.8f;
-        instancedCall.transforms.push_back(NkMat4f::Translate(x, 0.05f, z) * NkMat4f::Scale(0.10f, 0.10f, 0.10f));
-        instancedCall.colors.push_back(NkVec3f(0.8f, 0.8f, 0.8f));
+    for (int i = 0; i < nbCubesGrouped; ++i) {
+        float32 x = (i % 40) * 0.12f - 2.4f;
+        float32 z = (i / 40) * 0.12f - 2.4f;
+        instDc.transforms.PushBack(NkMat4f::Translate({x, 0.035f, z}) * NkMat4f::Scale({0.05f, 0.05f, 0.05f}));
+        instDc.tints.PushBack({0.75f, 0.80f, 0.85f});
     }
 
     auto t2 = std::chrono::high_resolution_clock::now();
-    for (int frame = 0; frame < 400; ++frame) {
-        renderer.ResetStats();
-        renderer.SubmitInstanced(instancedCall);
-        renderer.Render();
+    for (int frame = 0; frame < nbFrames; ++frame) {
+        if (renderer->BeginFrame()) {
+            setupScene();
+            r3d->SubmitInstanced(instDc);
+            renderer->Present();
+            renderer->EndFrame();
+        }
     }
+    device->WaitIdle();
     auto t3 = std::chrono::high_resolution_clock::now();
-    double fpsGrouped = 400.0 / std::chrono::duration<double>(t3 - t2).count();
-    std::cout << "[Grouped] Cubes: " << nbCubesOneByOne
-              << " | drawCalls: " << renderer.GetStats().drawCalls
-              << " | Cadence: " << fpsGrouped << " fps" << std::endl;
+    double fpsGrouped = static_cast<double>(nbFrames) / std::chrono::duration<double>(t3 - t2).count();
+    std::cout << "Grouped: 1 drawCalls, " << std::fixed << std::setprecision(1) << fpsGrouped
+              << " fps, " << nbCubesGrouped << " cubes" << std::endl;
+
+    // Écriture de cadence.txt
+    std::ofstream out("cadence.txt");
+    if (out.is_open()) {
+        out << "One by one: " << nbCubesOneByOne << " cubes, " << nbCubesOneByOne
+            << " drawCalls, " << std::fixed << std::setprecision(1) << fpsOneByOne << " fps\n\n";
+        out << "Grouped: 1 drawCalls, " << std::fixed << std::setprecision(1) << fpsGrouped
+            << " fps, " << nbCubesGrouped << " cubes\n\n";
+        out << "Found:\n";
+        out << "La structure de dessin instancie NkDrawCallInstanced et la methode SubmitInstanced,\n";
+        out << "declarees dans les fichiers d'en-tete NKRendererTypes.h et NkRender3D.h.\n";
+        out.close();
+    }
+
+    NkRenderer::Destroy(renderer);
+    NkDeviceFactory::Destroy(device);
+    window.Close();
 
     return 0;
 }

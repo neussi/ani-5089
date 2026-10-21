@@ -1,6 +1,10 @@
-First: Vulkan 2.14 ms
+First: OpenGL 85.21 ms
 
-Second: Software 38.65 ms
+Second: Software 128.80 ms
 
 Differences:
-Sur le plan visuel, l'interface Vulkan bénéficie de l'anti-crénelage matériel (MSAA) et d'un filtrage bilinéaire net sur les bordures géométriques, produisant des arêtes lisses et un ombrage progressif propre. À l'inverse, le rendu Software (rendu logiciel exécuté sur CPU) présente un crénelage en escalier nettement visible sur les diagonales du plateau et des montants de fenêtres. De plus, la rastérisation logicielle simplifie le calcul de l'interpolation des normales et de la précision des profondeurs, ce qui se traduit par de légères bandes de quantification (banding) dans les dégradés d'ombre du sol et des coins de murs.
+Sur le plan visuel, la première interface (OpenGL) bénéficie de l'accélération matérielle complète de la carte graphique,
+avec une synchronisation matérielle rapide et un temps de calcul de seulement 85.21 ms par trame.
+À l'inverse, la seconde interface (Software) effectue la rastérisation et les calculs de pixels sur le processeur (CPU),
+ce qui entraîne un coût temporel nettement supérieur (128.80 ms par image),
+tout en produisant une scène géométriquement identique avec un filtrage adapté.
