@@ -1,12 +1,46 @@
 The physical law :
-Le modèle qui respecte la loi physique de propagation acoustique d'une source ponctuelle en champ libre est le modèle INVERSE avec rolloffFactor = 1. En physique fondamentale, la puissance d'une onde sphérique se répartit sur une sphère d'aire 4*pi*d^2, faisant décroître l'intensité acoustique en 1/d^2 et la pression acoustique (l'amplitude perçue et mesurée en RMS) en 1/d. Les mesures réelles fournies par le moteur pour INVERSE (rolloff 1) traduisent mathématiquement cette loi au-delà de la distance de référence minDistance = 1 m : à 1 m le gain est de 1.000, à 2 m il vaut exactement 0.500 (gain divisé par 2), à 4 m il s'établit à 0.250 (gain divisé par 4), et à 8 m il descend à 0.125 (gain divisé par 8). Le modèle EXPONENTIAL à rolloff 1 présente des valeurs similaires (0.499, 0.250, 0.125), mais sa nature purement empirique s'écarte de la physique dès que le facteur de chute est modifié.
+Le modèle qui respecte la loi physique de propagation acoustique d'une source
+ponctuelle en champ libre est le modèle INVERSE avec rolloffFactor = 1.
+En physique fondamentale, la puissance d'une onde sphérique se répartit sur
+une sphère d'aire 4*pi*d^2, faisant décroître l'intensité acoustique en 1/d^2
+et la pression acoustique (l'amplitude perçue et mesurée en RMS) en 1/d.
+Les mesures réelles fournies par le moteur pour INVERSE (rolloff 1)
+traduisent mathématiquement cette loi au-delà de la distance de référence
+minDistance = 1 m : à 1 m le gain est de 1.000, à 2 m il vaut exactement 0.500
+(gain divisé par 2), à 4 m il s'établit à 0.250 (gain divisé par 4), et à 8 m
+il descend à 0.125 (gain divisé par 8). Le modèle EXPONENTIAL à rolloff 1
+présente des valeurs similaires (0.499, 0.250, 0.125), mais sa nature purement
+empirique s'écarte de la physique dès que le facteur de chute est modifié.
 
 What rolloff changes :
-Le paramètre rolloffFactor contrôle l'agressivité de l'atténuation avec la distance, avec un comportement spécifique pour chacun des quatre modèles :
-- Pour NONE : aucun changement, le gain demeure rigoureusement invariant à 1.000 à toutes les distances.
-- Pour INVERSE : le facteur amplifie la résistance perçue du milieu via gain = minDistance / (minDistance + rolloff * (d - minDistance)). À 2 m, le gain passe de 0.500 (rolloff 1) à 0.334 (rolloff 2, correspondant à 1/(1+2) = 1/3) ; à 8 m, il est presque divisé par deux en chutant de 0.125 à 0.067.
-- Pour LINEAR : le facteur multiplie la pente descendante reliant 1.000 à minDistance (1 m) jusqu'à 0.000 à maxDistance (100 m). À 8 m, le gain passe de 0.929 à 0.859. L'atténuation reste très douce car l'échelle maximale est vaste.
-- Pour EXPONENTIAL : le rolloffFactor intervient comme exposant de la distance relative (d / minDistance)^(-rolloff). À rolloff 2, la chute devient quadratique : à 2 m le gain tombe à 0.250 (contre 0.500 à rolloff 1), à 4 m il n'est plus que de 0.063, et à 8 m il s'effondre à 0.016, plongeant le son dans un quasi-silence.
+Le paramètre rolloffFactor contrôle l'agressivité de l'atténuation avec la
+distance, avec un comportement spécifique pour chacun des quatre modèles :
+- Pour NONE : aucun changement, le gain demeure rigoureusement invariant
+  à 1.000 à toutes les distances.
+- Pour INVERSE : le facteur amplifie la résistance perçue du milieu via
+  gain = minDistance / (minDistance + rolloff * (d - minDistance)).
+  À 2 m, le gain passe de 0.500 (rolloff 1) à 0.334 (rolloff 2, correspondant
+  à 1/(1+2) = 1/3) ; à 8 m, il est presque divisé par deux en chutant de 0.125
+  à 0.067.
+- Pour LINEAR : le facteur multiplie la pente descendante reliant 1.000 à
+  minDistance (1 m) jusqu'à 0.000 à maxDistance (100 m). À 8 m, le gain passe
+  de 0.929 à 0.859. L'atténuation reste très douce car l'échelle maximale est
+  vaste.
+- Pour EXPONENTIAL : le rolloffFactor intervient comme exposant de la distance
+  relative (d / minDistance)^(-rolloff). À rolloff 2, la chute devient
+  quadratique : à 2 m le gain tombe à 0.250 (contre 0.500 à rolloff 1), à 4 m
+  il n'est plus que de 0.063, et à 8 m il s'effondre à 0.016, plongeant le son
+  dans un quasi-silence.
 
 For the corridor door :
-Pour une porte qui grince au bout d'un couloir situé à environ 8 mètres de l'observateur, le choix optimal est le modèle INVERSE avec rolloffFactor = 1. À cette distance de 8 m, le gain mesuré est de 0.125 (-18 dB) : le grincement reste audible, apportant un repère d'ambiance et de tension essentiel en réalité virtuelle, tout en faisant clairement ressentir à l'auditeur l'éloignement spatial de la porte. À titre de comparaison, le modèle EXPONENTIAL (gain de 0.016 à 8 m à rolloff 2) rendrait le grincement inaudible, privant le joueur de toute information auditive ; à l'autre extrême, le modèle LINEAR (gain de 0.929 à 8 m) délivrerait un son presque aussi fort qu'à 1 m, donnant l'impression trompeuse et désagréable que la porte grince à bout portant.
+Pour une porte qui grince au bout d'un couloir situé à environ 8 mètres de
+l'observateur, le choix optimal est le modèle INVERSE avec rolloffFactor = 1.
+À cette distance de 8 m, le gain mesuré est de 0.125 (-18 dB) : le grincement
+reste audible, apportant un repère d'ambiance et de tension essentiel en
+réalité virtuelle, tout en faisant clairement ressentir à l'auditeur
+l'éloignement spatial de la porte. À titre de comparaison, le modèle
+EXPONENTIAL (gain de 0.016 à 8 m à rolloff 2) rendrait le grincement inaudible,
+privant le joueur de toute information auditive ; à l'autre extrême, le modèle
+LINEAR (gain de 0.929 à 8 m) délivrerait un son presque aussi fort qu'à 1 m,
+donnant l'impression trompeuse et désagréable que la porte grince à bout
+portant.

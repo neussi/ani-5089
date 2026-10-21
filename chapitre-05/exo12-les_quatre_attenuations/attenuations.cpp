@@ -1,6 +1,6 @@
 // =============================================================================
 // Chapitre 05 - Exercice 12 : Les quatre atténuations
-// attenuations.cpp : Mesure du gain des 4 modèles d'atténuation sonore du moteur
+// attenuations.cpp : Mesure du gain des 4 modèles d'atténuation sonore
 // UE-ANI-IA-5049 — Coder pour la VR, XR et AR III
 // =============================================================================
 
@@ -37,16 +37,20 @@ int nkmain(const NkEntryState &state) {
     cfg.backend = AudioBackendType::NULL_OUTPUT;
     AudioEngine::Instance().Initialize(cfg);
 
-    // 2. Position et orientation de l'auditeur à l'origine (0, 0, 0) regardant vers -Z
+    // 2. Position et orientation de l'auditeur à l'origine regardant vers -Z
     AudioEngine::Instance().SetListenerPosition(0.0f, 0.0f, 0.0f);
-    AudioEngine::Instance().SetListenerOrientation(0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f);
+    AudioEngine::Instance().SetListenerOrientation(
+        0.0f, 0.0f, -1.0f,
+        0.0f, 1.0f, 0.0f
+    );
 
     // 3. Génération d'une sinusoïde douce (440 Hz, durée 2 s, amplitude 0.1)
-    AudioSample tone = AudioGenerator::GenerateTone(440.0f, 2.0f, WaveformType::SINE, 48000, 0.1f);
+    AudioSample tone = AudioGenerator::GenerateTone(
+        440.0f, 2.0f, WaveformType::SINE, 48000, 0.1f
+    );
 
     const float32 distances[] = {0.5f, 1.0f, 2.0f, 4.0f, 8.0f};
     const int numDistances = 5;
-
     const int rolloffs[] = {1, 2};
 
     ModelInfo models[] = {
@@ -58,10 +62,12 @@ int nkmain(const NkEntryState &state) {
 
     const int32 totalFrames = 48000;
     const int32 blockSize = 256;
-    float32 buffer[blockSize * 2]; // Stéréo L, R interleaved
+    float32 buffer[blockSize * 2];
 
     // Fonction de mesure RMS sur les deux oreilles ensemble
-    auto measureRMS = [&](AttenuationModel model, float32 rolloff, float32 d) -> double {
+    auto measureRMS = [&](AttenuationModel model,
+                          float32 rolloff,
+                          float32 d) -> double {
         VoiceParams p;
         p.looping = true;
         p.volume = 1.0f;
@@ -80,35 +86,36 @@ int nkmain(const NkEntryState &state) {
         int32 framesRendered = 0;
 
         while (framesRendered < totalFrames) {
-            int32 framesToRender = std::min(blockSize, totalFrames - framesRendered);
+            int32 framesToRender =
+                std::min(blockSize, totalFrames - framesRendered);
             AudioEngine::Instance().RenderToBuffer(buffer, framesToRender, 2);
 
             for (int32 i = 0; i < framesToRender; ++i) {
                 float32 sL = buffer[i * 2 + 0];
                 float32 sR = buffer[i * 2 + 1];
-                sumSqBoth += (double)sL * (double)sL + (double)sR * (double)sR;
+                sumSqBoth += static_cast<double>(sL) * static_cast<double>(sL)
+                           + static_cast<double>(sR) * static_cast<double>(sR);
             }
             framesRendered += framesToRender;
         }
 
         AudioEngine::Instance().Stop(voix);
-
-        // RMS combiné sur les deux oreilles (2 * totalFrames échantillons)
         return std::sqrt(sumSqBoth / (2.0 * totalFrames));
     };
 
     std::ofstream fichier("mesures.txt");
-
     std::cout << "--- Mesures des 4 modeles d'attenuation ---" << std::endl;
 
     for (int r : rolloffs) {
-        float32 rolloffVal = (float32)r;
+        float32 rolloffVal = static_cast<float32>(r);
 
-        // Mesure préliminaire de référence NONE pour chaque distance
         double baseNoneRMS[5];
         for (int i = 0; i < numDistances; ++i) {
-            baseNoneRMS[i] = measureRMS(AttenuationModel::NONE, rolloffVal, distances[i]);
-            if (baseNoneRMS[i] <= 1e-9) baseNoneRMS[i] = 1.0;
+            baseNoneRMS[i] =
+                measureRMS(AttenuationModel::NONE, rolloffVal, distances[i]);
+            if (baseNoneRMS[i] <= 1e-9) {
+                baseNoneRMS[i] = 1.0;
+            }
         }
 
         for (const auto &m : models) {
@@ -121,16 +128,18 @@ int nkmain(const NkEntryState &state) {
                 if (d == 0.5f) {
                     distStr = "0.5 m";
                 } else {
-                    distStr = std::to_string((int)d) + " m";
+                    distStr = std::to_string(static_cast<int>(d)) + " m";
                 }
 
-                // Format demandé : INVERSE, rolloff 1, 2 m : g
-                std::cout << m.nom << ", rolloff " << r << ", " << distStr << " : "
-                          << std::fixed << std::setprecision(3) << gain << std::endl;
+                // Format : INVERSE, rolloff 1, 2 m : g
+                std::cout << m.nom << ", rolloff " << r << ", " << distStr
+                          << " : " << std::fixed << std::setprecision(3)
+                          << gain << std::endl;
 
                 if (fichier.is_open()) {
-                    fichier << m.nom << ", rolloff " << r << ", " << distStr << " : "
-                            << std::fixed << std::setprecision(3) << gain << "\n";
+                    fichier << m.nom << ", rolloff " << r << ", " << distStr
+                            << " : " << std::fixed << std::setprecision(3)
+                            << gain << "\n";
                 }
             }
         }
@@ -140,7 +149,6 @@ int nkmain(const NkEntryState &state) {
         fichier.close();
     }
 
-    // 4. Fermeture propre du moteur
     AudioEngine::Instance().Shutdown();
     AudioLoader::Free(tone);
 
