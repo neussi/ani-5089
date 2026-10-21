@@ -1,15 +1,13 @@
 Lines:
     NkDrawCall3D cubeDrawCall;
-    cubeDrawCall.mesh = meshSystem->GetCube();
+    cubeDrawCall.mesh = meshCube;
     cubeDrawCall.transform = cubeTransform;
-    cubeDrawCall.color = NkVec3f(1.0f, 1.0f, 1.0f); // Teinte blanche
-    cubeDrawCall.aabb = NkAABB3D(
-        cubePos - NkVec3f(0.5f, 0.5f, 0.5f),
-        cubePos + NkVec3f(0.5f, 0.5f, 0.5f)
-    );
-
-    // Soumission du cube
-    renderer->Submit(cubeDrawCall);
+    cubeDrawCall.tint = {1.0f, 1.0f, 1.0f};
+    cubeDrawCall.aabb = {
+        {cubePos.x - 0.5f, cubePos.y - 0.5f, cubePos.z - 0.5f},
+        {cubePos.x + 0.5f, cubePos.y + 0.5f, cubePos.z + 0.5f}
+    };
+    r3d->Submit(cubeDrawCall);
 
 Cause:
-Une boîte englobante non renseignée (le champ aabb laissé non défini dans NkDrawCall3D). Lorsque le champ aabb de l'objet reste à zéro ou non initialisé, le frustum culling du renderer considère que l'objet se trouve en dehors du champ de vision de la caméra et l'écarte silencieusement du rendu sans émettre le moindre message d'erreur. J'ai identifié cette cause en inspectant le compteur d'objets rejetés dans les statistiques du moteur et en constatant qu'en assignant explicitement les coordonnées réelles de l'AABB en coordonnées monde (cubePos ± 0.5), le cube est immédiatement devenu visible à l'écran.
+Une boîte englobante (AABB) non renseignée dans NkDrawCall3D. Par défaut, la structure NkAABB dans le moteur Nkentseu est initialisée à vide (min = +1e30, max = -1e30). Lors de la passe de visibilité géométrique, le frustum culling de NkRender3D teste l'intersection entre les plans du frustum de la caméra et l'AABB de chaque drawcall via TestAABB. Comme l'AABB non initialisée est inversée/vide, le renderer conclut que l'objet est en dehors de la pyramide de vue et l'écarte silencieusement du rendu (le moteur journalise dans app.log : "bilan etendues : 1 non renseignee(s)"). En renseignant explicitement les bornes réelles de l'AABB en coordonnées monde (cubePos ± 0.5), le test d'inclusion dans le frustum est validé et le cube apparaît immédiatement au centre de l'écran à 2 mètres de la caméra.

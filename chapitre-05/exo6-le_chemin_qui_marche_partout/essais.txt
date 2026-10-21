@@ -1,0 +1,4 @@
+avant, projet : Le mur du fond affiche la texture de beton correctement car le dossier relatif murs/ se trouve directement dans le repertoire courant d'execution.
+avant, Build : Le mur du fond affiche la couleur unie blanche par defaut du materiau de repli car le chemin relatif est introuvable depuis le dossier du binaire. [ERR] [default] [NkTextureLibrary.cpp:478 in Load] -> [NkTextureLibrary] Echec chargement texture : murs/beton.png
+apres, projet : Le mur du fond affiche la texture de beton car NkPath::LocateResource resout immediatement le chemin des la premiere etape de verification dans le dossier courant.
+apres, Build : Le mur du fond affiche parfaitement la texture de beton car NkPath::LocateResource remonte l'arborescence des dossiers parents depuis l'emplacement de l'executable et localise automatiquement le dossier de ressources.

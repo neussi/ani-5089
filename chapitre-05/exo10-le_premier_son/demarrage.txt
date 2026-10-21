@@ -1,0 +1,4 @@
+dorsal : ALSA
+frequence : 48000
+tampon : 256
+latence : 15

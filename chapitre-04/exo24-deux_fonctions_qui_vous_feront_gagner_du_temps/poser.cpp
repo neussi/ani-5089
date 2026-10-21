@@ -1,77 +1,218 @@
-#include <iostream>
+// =============================================================================
+// Exercice 24 : Deux fonctions qui vous feront gagner du temps
+// UE-ANI-IA-5049 — Coder pour la VR, XR et AR III
+// Implémentation réelle avec le moteur Nkentseu (NKWindow, NKRHI, NKRenderer)
+// =============================================================================
 
-struct NkVec3f {
-    float x, y, z;
-    NkVec3f(float _x = 0.0f, float _y = 0.0f, float _z = 0.0f) : x(_x), y(_y), z(_z) {}
+#include "NKPlatform/NkPlatformDetect.h"
+#include "NKWindow/NKMain.h"
+#include "NKWindow/Core/NkWindow.h"
+#include "NKWindow/Core/NkWindowConfig.h"
+#include "NKEvent/NkWindowEvent.h"
+#include "NKEvent/NkKeyboardEvent.h"
+#include "NKTime/NkTime.h"
+#include "NKLogger/NkLog.h"
+
+#include "NKRHI/Core/NkDeviceFactory.h"
+#include "NKRenderer/NkRenderer.h"
+#include "NKRenderer/Core/NkCamera.h"
+#include "NKRenderer/Mesh/NkMeshSystem.h"
+#include "NKRenderer/Tools/Render3D/NkRender3D.h"
+#include "Commun/NkTutoCapture.h"
+
+using namespace nkentseu;
+using namespace nkentseu::renderer;
+
+static void ConfigureAppData(NkAppData &d) {
+    d.appName = "Exo24Poser";
+}
+NK_REGISTER_ENTRY_APPDATA_UPDATER(ConfigureAppData)
+
+struct ObjetPose {
+    NkMat4f transform;
+    NkAABB aabb;
 };
 
-struct NkMat4f {
-    float m[16];
-    static NkMat4f Identity() {
-        NkMat4f r = {};
-        r.m[0] = r.m[5] = r.m[10] = r.m[15] = 1.0f;
-        return r;
+// Fonction 1 : Poser directement un objet au sol (y = 0)
+inline ObjetPose PoserAuSol(NkVec3f taille, float32 x, float32 z) {
+    float32 centreY = taille.y * 0.5f;
+    NkVec3f c = {x, centreY, z};
+    ObjetPose res;
+    res.transform = NkMat4f::Translate(c) * NkMat4f::Scale(taille);
+    res.aabb = {
+        {c.x - taille.x * 0.5f, c.y - taille.y * 0.5f, c.z - taille.z * 0.5f},
+        {c.x + taille.x * 0.5f, c.y + taille.y * 0.5f, c.z + taille.z * 0.5f}
+    };
+    return res;
+}
+
+// Fonction 2 : Poser un objet sur une surface horizontale située à hauteurBase (ex: plateau de table à 0.75m)
+inline ObjetPose PoserSur(float32 hauteurBase, NkVec3f taille, float32 x, float32 z) {
+    float32 centreY = hauteurBase + (taille.y * 0.5f);
+    NkVec3f c = {x, centreY, z};
+    ObjetPose res;
+    res.transform = NkMat4f::Translate(c) * NkMat4f::Scale(taille);
+    res.aabb = {
+        {c.x - taille.x * 0.5f, centreY - taille.y * 0.5f, c.z - taille.z * 0.5f},
+        {c.x + taille.x * 0.5f, centreY + taille.y * 0.5f, c.z + taille.z * 0.5f}
+    };
+    return res;
+}
+
+int nkmain(const NkEntryState &state) {
+    (void)state;
+
+    NkWindowConfig winCfg;
+    winCfg.title = "Exo 24 — Deux fonctions qui vous feront gagner du temps";
+    winCfg.width = 1280;
+    winCfg.height = 720;
+    winCfg.centered = true;
+    winCfg.resizable = true;
+
+    NkWindow window(winCfg);
+    if (!window.IsValid()) return 1;
+
+    NkDeviceInitInfo devInfo{};
+    devInfo.surface = window.GetSurfaceDesc();
+    devInfo.width = (uint32)window.GetSize().width;
+    devInfo.height = (uint32)window.GetSize().height;
+
+    NkIDevice *device = NkDeviceFactory::CreateAutoDetect(devInfo);
+    if (!device || !device->IsValid()) {
+        window.Close();
+        return 2;
     }
-    static NkMat4f Translate(float tx, float ty, float tz) {
-        NkMat4f r = Identity();
-        r.m[12] = tx; r.m[13] = ty; r.m[14] = tz;
-        return r;
+
+    NkRendererConfig cfg = NkRendererConfig::ForGame(devInfo.api, devInfo.width, devInfo.height);
+    NkRenderer *renderer = NkRenderer::Create(device, cfg);
+    if (!renderer || !renderer->Initialize()) {
+        NkRenderer::Destroy(renderer);
+        NkDeviceFactory::Destroy(device);
+        window.Close();
+        return 3;
     }
-    static NkMat4f Scale(float sx, float sy, float sz) {
-        NkMat4f r = Identity();
-        r.m[0] = sx; r.m[5] = sy; r.m[10] = sz;
-        return r;
-    }
-    NkMat4f operator*(const NkMat4f& o) const {
-        NkMat4f r = {};
-        for (int i = 0; i < 4; ++i) {
-            for (int j = 0; j < 4; ++j) {
-                for (int k = 0; k < 4; ++k) {
-                    r.m[i * 4 + j] += m[i * 4 + k] * o.m[k * 4 + j];
-                }
-            }
+
+    NkRender3D *r3d = renderer->GetRender3D();
+    NkMeshHandle meshCube = renderer->GetMeshSystem()->GetCube();
+
+    bool running = true;
+    uint32 W = devInfo.width;
+    uint32 H = devInfo.height;
+    NkEventSystem &events = NkEvents();
+
+    events.AddEventCallback<NkWindowCloseEvent>([&](NkWindowCloseEvent *) { running = false; });
+    events.AddEventCallback<NkKeyPressEvent>([&](NkKeyPressEvent *e) {
+        if (e->GetKey() == NkKey::NK_ESCAPE) running = false;
+    });
+    events.AddEventCallback<NkWindowResizeEvent>([&](NkWindowResizeEvent *e) {
+        uint32 w = (uint32)e->GetWidth(), h = (uint32)e->GetHeight();
+        if (w > 0 && h > 0 && (w != W || h != H)) {
+            W = w; H = h;
+            renderer->OnResize(w, h);
         }
-        return r;
+    });
+
+    NkClock clock;
+    float32 totalTime = 0.0f;
+    tuto::NkTutoCapture capture;
+
+    // Paramètres géométriques
+    const float32 tableX = 0.20f;
+    const float32 tableZ = -0.10f;
+    const NkVec3f dimPlateau = {1.30f, 0.05f, 0.75f};
+    const float32 hauteurTable = 0.75f;
+    const float32 hauteurPieds = hauteurTable - dimPlateau.y; // 0.70m
+    const NkVec3f dimPied = {0.06f, hauteurPieds, 0.06f};
+
+    const float32 legOffsetX = (dimPlateau.x * 0.5f) - (dimPied.x * 0.5f) - 0.03f;
+    const float32 legOffsetZ = (dimPlateau.z * 0.5f) - (dimPied.z * 0.5f) - 0.03f;
+
+    const NkVec3f dimBoite = {0.22f, 0.16f, 0.22f};
+    const NkVec3f dimLivre = {0.28f, 0.04f, 0.20f};
+
+    while (running && window.IsOpen()) {
+        events.PollEvents();
+        if (!running) break;
+        if (capture.Etape(renderer, device, W, H)) break;
+
+        float32 dt = clock.Tick().delta;
+        totalTime = capture.Temps(totalTime + dt);
+
+        if (!renderer->BeginFrame()) continue;
+
+        NkCamera3DData camData;
+        camData.up = {0.0f, 1.0f, 0.0f};
+        camData.fovY = 55.0f;
+        camData.aspect = (float32)W / (float32)H;
+        camData.nearPlane = 0.05f;
+        camData.farPlane = 100.0f;
+
+        NkCamera3D camera(camData);
+        camera.SetPosition({1.10f, 1.50f, 1.90f});
+        camera.SetTarget({tableX, 0.65f, tableZ});
+
+        NkSceneContext sctx;
+        sctx.camera = camera;
+        sctx.time = totalTime;
+
+        NkLightDesc sun;
+        sun.type = NkLightType::NK_DIRECTIONAL;
+        sun.direction = {-0.5f, -0.8f, -0.3f};
+        sun.color = {1.0f, 0.97f, 0.92f};
+        sun.intensity = 2.7f;
+        sun.castShadow = true;
+        sctx.lights.PushBack(sun);
+
+        r3d->BeginScene(sctx);
+
+        auto submitPose = [&](const ObjetPose &op, NkVec3f tint, float32 roughness, bool shadow = true) {
+            NkDrawCall3D dc;
+            dc.mesh = meshCube;
+            dc.transform = op.transform;
+            dc.aabb = op.aabb;
+            dc.tint = tint;
+            dc.roughness = roughness;
+            dc.castShadow = shadow;
+            r3d->Submit(dc);
+        };
+
+        // 1. Sol (4m x 4m)
+        {
+            NkDrawCall3D dc;
+            dc.mesh = meshCube;
+            dc.transform = NkMat4f::Translate({0.0f, -0.05f, 0.0f}) * NkMat4f::Scale({4.0f, 0.10f, 4.0f});
+            dc.aabb = {{-2.0f, -0.10f, -2.0f}, {2.0f, 0.0f, 2.0f}};
+            dc.tint = {0.35f, 0.36f, 0.40f};
+            dc.roughness = 0.8f;
+            dc.castShadow = false;
+            r3d->Submit(dc);
+        }
+
+        // 2. Murs posés au sol avec PoserAuSol
+        submitPose(PoserAuSol({4.0f, 2.50f, 0.10f}, 0.0f, -2.0f), {0.72f, 0.74f, 0.76f}, 0.7f, true);
+        submitPose(PoserAuSol({0.10f, 2.50f, 4.0f}, -2.0f, 0.0f), {0.70f, 0.72f, 0.74f}, 0.7f, true);
+
+        // 3. Pieds de la table posés au sol avec PoserAuSol
+        submitPose(PoserAuSol(dimPied, tableX - legOffsetX, tableZ - legOffsetZ), {0.25f, 0.17f, 0.10f}, 0.6f, true);
+        submitPose(PoserAuSol(dimPied, tableX + legOffsetX, tableZ - legOffsetZ), {0.25f, 0.17f, 0.10f}, 0.6f, true);
+        submitPose(PoserAuSol(dimPied, tableX - legOffsetX, tableZ + legOffsetZ), {0.25f, 0.17f, 0.10f}, 0.6f, true);
+        submitPose(PoserAuSol(dimPied, tableX + legOffsetX, tableZ + legOffsetZ), {0.25f, 0.17f, 0.10f}, 0.6f, true);
+
+        // 4. Plateau de la table posé sur le sommet des pieds (hauteurPieds = 0.70m)
+        submitPose(PoserSur(hauteurPieds, dimPlateau, tableX, tableZ), {0.68f, 0.45f, 0.28f}, 0.5f, true);
+
+        // 5. Objets posés sur la table avec PoserSur(hauteurTable = 0.75m)
+        submitPose(PoserSur(hauteurTable, dimBoite, tableX - 0.25f, tableZ), {0.18f, 0.45f, 0.65f}, 0.4f, true);
+        submitPose(PoserSur(hauteurTable, dimLivre, tableX + 0.25f, tableZ + 0.05f), {0.75f, 0.25f, 0.22f}, 0.5f, true);
+
+        renderer->Present();
+        renderer->EndFrame();
+        capture.ImageRendue();
     }
-};
 
-// Fonction 1 : Pose un objet au sol (y = 0)
-// Compose la translation puis l'echelle (Translate * Scale)
-NkMat4f PoserAuSol(NkVec3f taille, float x, float z) {
-    float centreY = taille.y * 0.5f;
-    return NkMat4f::Translate(x, centreY, z) * NkMat4f::Scale(taille.x, taille.y, taille.z);
-}
-
-// Fonction 2 : Pose un objet sur la face superieure de la table (y = 0.75 m)
-// Compose la translation puis l'echelle (Translate * Scale)
-NkMat4f PoserSurTable(NkVec3f taille, float x, float z) {
-    float centreY = 0.75f + (taille.y * 0.5f);
-    return NkMat4f::Translate(x, centreY, z) * NkMat4f::Scale(taille.x, taille.y, taille.z);
-}
-
-int main() {
-    // 1. Murs de la salle (4m x 4m x 2.50m) poses au sol avec PoserAuSol
-    NkMat4f murFond   = PoserAuSol(NkVec3f(4.0f, 2.5f, 0.1f), 0.0f, -2.0f);
-    NkMat4f murFace   = PoserAuSol(NkVec3f(4.0f, 2.5f, 0.1f), 0.0f,  2.0f);
-    NkMat4f murGauche = PoserAuSol(NkVec3f(0.1f, 2.5f, 4.0f), -2.0f, 0.0f);
-    NkMat4f murDroite = PoserAuSol(NkVec3f(0.1f, 2.5f, 4.0f),  2.0f, 0.0f);
-
-    // 2. Porte (0.90m x 2.00m x 0.02m) posee au sol
-    NkMat4f porte = PoserAuSol(NkVec3f(0.90f, 2.00f, 0.02f), -0.70f, -1.995f);
-
-    // 3. Pieds de table poses au sol (section 0.06 x 0.06, hauteur 0.70m)
-    NkMat4f pied1 = PoserAuSol(NkVec3f(0.06f, 0.70f, 0.06f), 0.03f, 0.33f);
-    NkMat4f pied2 = PoserAuSol(NkVec3f(0.06f, 0.70f, 0.06f), 1.17f, 0.33f);
-    NkMat4f pied3 = PoserAuSol(NkVec3f(0.06f, 0.70f, 0.06f), 0.03f, 1.07f);
-    NkMat4f pied4 = PoserAuSol(NkVec3f(0.06f, 0.70f, 0.06f), 1.17f, 1.07f);
-
-    // 4. Plateau de table (epaisseur 0.05m, pose a y = 0.70m pour que le haut soit a 0.75m)
-    NkMat4f plateau = NkMat4f::Translate(0.60f, 0.725f, 0.70f) * NkMat4f::Scale(1.20f, 0.05f, 0.80f);
-
-    // 5. Objet pose sur la table avec PoserSurTable (une boite de 15cm x 10cm x 15cm)
-    NkVec3f tailleObjet(0.15f, 0.10f, 0.15f);
-    NkMat4f objetSurTable = PoserSurTable(tailleObjet, 0.60f, 0.70f);
-
-    std::cout << "Tous les elements au sol et sur la table ont ete positionnes." << std::endl;
-    return 0;
+    device->WaitIdle();
+    NkRenderer::Destroy(renderer);
+    NkDeviceFactory::Destroy(device);
+    window.Close();
+    return capture.CodeDeSortie(0);
 }

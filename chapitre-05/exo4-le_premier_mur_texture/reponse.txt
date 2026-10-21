@@ -1,0 +1,8 @@
+My texture :
+Ma texture est une photographie détaillée d'un mur en béton architectural brut banché, comportant du grain minéral, des aspérités de coffrage et des micro-irrégularités de surface. L'image est au format PNG en espace colorimétrique sRGB, avec des dimensions de 1024 x 1024 pixels, stockée sous `murs/beton.png`.
+
+What the wall gained :
+En réalité virtuelle, une surface lisse et grise sans texture ne procure aucun indice visuel de mise au point à l'œil : sans micro-contrastes, la stéréoscopie et le gradient de texture sont inopérants, rendant l'estimation de la distance de la paroi quasi impossible. L'application de la texture de béton associée à la projection triplanaire (`SetTriplanarTileSize(1.0f)`) confère au mur une échelle métrique tangible et une échelle de profondeur naturelle. Les aspérités du béton réagissent à la lumière directionnelle, ce qui permet au cerveau d'ancrer immédiatement le mur du fond à sa position spatiale réelle (z = -2 m) par rapport aux autres parois de la pièce.
+
+What held me up :
+Le point délicat a été la sensibilité au répertoire de travail courant pour la résolution du chemin relatif `murs/beton.png`, car exécuter le binaire depuis un autre dossier empêche le chargeur de trouver le fichier. De plus, pour observer de nouveau la ligne d'annonce de chargement dans `logs/app.log` lors des essais successifs, il a été indispensable d'ajouter la variable `NK_TEX_CACHE=0` pour forcer le moteur à relire le fichier sur disque plutôt qu'à réutiliser l'instance en cache.

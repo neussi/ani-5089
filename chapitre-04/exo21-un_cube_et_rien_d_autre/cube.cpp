@@ -1,189 +1,173 @@
-#include <iostream>
-#include <cmath>
-#include <cstdint>
+// =============================================================================
+// Exercice 21 : Un cube, et rien d'autre
+// UE-ANI-IA-5049 — Coder pour la VR, XR et AR III
+// Implémentation réelle avec le moteur Nkentseu (NKWindow, NKRHI, NKRenderer)
+// =============================================================================
 
-// Structures et définitions du framework NK
-struct NkVec3f {
-    float x, y, z;
-    NkVec3f(float _x = 0.0f, float _y = 0.0f, float _z = 0.0f) : x(_x), y(_y), z(_z) {}
-    NkVec3f operator+(const NkVec3f& o) const { return NkVec3f(x + o.x, y + o.y, z + o.z); }
-    NkVec3f operator-(const NkVec3f& o) const { return NkVec3f(x - o.x, y - o.y, z - o.z); }
-    NkVec3f operator*(float s) const { return NkVec3f(x * s, y * s, z * s); }
-    NkVec3f Normalized() const {
-        float len = std::sqrt(x * x + y * y + z * z);
-        return len > 0.0001f ? NkVec3f(x / len, y / len, z / len) : *this;
-    }
-};
+#include "NKPlatform/NkPlatformDetect.h"
+#include "NKWindow/NKMain.h"
+#include "NKWindow/Core/NkWindow.h"
+#include "NKWindow/Core/NkWindowConfig.h"
+#include "NKEvent/NkWindowEvent.h"
+#include "NKEvent/NkKeyboardEvent.h"
+#include "NKTime/NkTime.h"
+#include "NKLogger/NkLog.h"
 
-struct NkMat4f {
-    float m[16];
-    static NkMat4f Identity() {
-        NkMat4f r = {};
-        r.m[0] = r.m[5] = r.m[10] = r.m[15] = 1.0f;
-        return r;
-    }
-    static NkMat4f Translate(float tx, float ty, float tz) {
-        NkMat4f r = Identity();
-        r.m[12] = tx; r.m[13] = ty; r.m[14] = tz;
-        return r;
-    }
-    static NkMat4f Translate(const NkVec3f& p) {
-        return Translate(p.x, p.y, p.z);
-    }
-    static NkMat4f Scale(float sx, float sy, float sz) {
-        NkMat4f r = Identity();
-        r.m[0] = sx; r.m[5] = sy; r.m[10] = sz;
-        return r;
-    }
-    NkMat4f operator*(const NkMat4f& o) const {
-        NkMat4f r = {};
-        for (int i = 0; i < 4; ++i) {
-            for (int j = 0; j < 4; ++j) {
-                for (int k = 0; k < 4; ++k) {
-                    r.m[i * 4 + j] += m[i * 4 + k] * o.m[k * 4 + j];
-                }
-            }
-        }
-        return r;
-    }
-};
+#include "NKRHI/Core/NkDeviceFactory.h"
+#include "NKRenderer/NkRenderer.h"
+#include "NKRenderer/Core/NkCamera.h"
+#include "NKRenderer/Mesh/NkMeshSystem.h"
+#include "NKRenderer/Tools/Render3D/NkRender3D.h"
+#include "Commun/NkTutoCapture.h"
 
-struct NkAABB3D {
-    NkVec3f min;
-    NkVec3f max;
-    NkAABB3D(const NkVec3f& _min = NkVec3f(), const NkVec3f& _max = NkVec3f()) : min(_min), max(_max) {}
-};
+using namespace nkentseu;
+using namespace nkentseu::renderer;
 
-enum NkSubsystemFlags {
-    NK_SS_NONE = 0,
-    NK_SS_RENDER3D = (1 << 0),
-    NK_SS_SHADOW = (1 << 1),
-    NK_SS_UI2D = (1 << 2)
-};
+static void ConfigureAppData(NkAppData &d) {
+    d.appName = "Exo21Cube";
+}
+NK_REGISTER_ENTRY_APPDATA_UPDATER(ConfigureAppData)
 
-enum class NkLightType {
-    NK_DIRECTIONAL = 0,
-    NK_POINT = 1,
-    NK_SPOT = 2
-};
+int nkmain(const NkEntryState &state) {
+    (void)state;
 
-struct NkLight {
-    NkLightType type;
-    NkVec3f direction;
-    NkVec3f color;
-    float intensity;
-    bool castShadow;
-};
+    // 1. Creation de la fenetre
+    NkWindowConfig winCfg;
+    winCfg.title = "Exo 21 — Un cube, et rien d'autre";
+    winCfg.width = 1280;
+    winCfg.height = 720;
+    winCfg.centered = true;
+    winCfg.resizable = true;
 
-struct NkMesh {
-    int id;
-};
+    NkWindow window(winCfg);
+    if (!window.IsValid()) return 1;
 
-class NkMeshSystem {
-public:
-    NkMesh* GetCube() {
-        static NkMesh unitCube = { 1 };
-        return &unitCube;
-    }
-};
+    // 2. Creation du device GPU
+    NkDeviceInitInfo devInfo{};
+    devInfo.surface = window.GetSurfaceDesc();
+    devInfo.width = (uint32)window.GetSize().width;
+    devInfo.height = (uint32)window.GetSize().height;
 
-struct NkDrawCall3D {
-    NkMesh* mesh;
-    NkMat4f transform;
-    NkVec3f color;
-    NkAABB3D aabb;
-};
-
-struct NkCamera {
-    NkVec3f position;
-    NkVec3f target;
-    NkVec3f up;
-    float fovY;
-    float nearPlane;
-    float farPlane;
-};
-
-struct NkRendererConfig {
-    uint32_t subsystems;
-};
-
-class NkRenderer {
-public:
-    void Init(const NkRendererConfig& config) {
-        std::cout << "Renderer initialise avec les sous-systemes: " << config.subsystems << std::endl;
-    }
-    void SetCamera(const NkCamera& cam) {}
-    void AddLight(const NkLight& light) {}
-    void Submit(const NkDrawCall3D& dc) {
-        std::cout << "Cube soumis au renderer avec succes." << std::endl;
-    }
-    void Render() {}
-};
-
-class NkDevice {
-public:
-    bool IsValid() const { return true; }
-};
-
-class NkDeviceFactory {
-public:
-    static NkDevice* CreateAutoDetect() {
-        return new NkDevice();
-    }
-};
-
-int main() {
-    // 1. Creation du device
-    NkDevice* device = NkDeviceFactory::CreateAutoDetect();
+    NkIDevice *device = NkDeviceFactory::CreateAutoDetect(devInfo);
     if (!device || !device->IsValid()) {
-        std::cerr << "Erreur de creation du device" << std::endl;
-        return -1;
+        window.Close();
+        return 2;
     }
 
-    // 2. Creation du renderer en nommant explicitement ses sous-systemes
-    NkRendererConfig config = {};
-    config.subsystems = NK_SS_RENDER3D; // On allume uniquement le dessin de maillage 3D
-    NkRenderer* renderer = new NkRenderer();
-    renderer->Init(config);
+    // 3. Creation du renderer
+    NkRendererConfig cfg = NkRendererConfig::ForGame(devInfo.api, devInfo.width, devInfo.height);
+    NkRenderer *renderer = NkRenderer::Create(device, cfg);
+    if (!renderer || !renderer->Initialize()) {
+        NkRenderer::Destroy(renderer);
+        NkDeviceFactory::Destroy(device);
+        window.Close();
+        return 3;
+    }
 
-    // 3. Placement de la camera a l'entree
-    NkCamera camera;
-    camera.position = NkVec3f(0.0f, 1.70f, 1.5f);
-    camera.target   = NkVec3f(0.0f, 1.40f, -2.0f);
-    camera.up       = NkVec3f(0.0f, 1.0f, 0.0f);
-    camera.fovY     = 70.0f;
-    camera.nearPlane = 0.05f;
-    camera.farPlane  = 200.0f;
-    renderer->SetCamera(camera);
+    NkRender3D *r3d = renderer->GetRender3D();
+    NkMeshHandle meshCube = renderer->GetMeshSystem()->GetCube();
+    NkMeshHandle meshPlane = renderer->GetMeshSystem()->GetPlane();
 
-    // 4. Declaration du soleil (lumiere directionnelle)
-    NkLight sun;
-    sun.type = NkLightType::NK_DIRECTIONAL;
-    sun.direction = NkVec3f(-0.4f, -1.0f, -0.3f);
-    sun.color = NkVec3f(1.0f, 0.95f, 0.85f);
-    sun.intensity = 3.0f;
-    sun.castShadow = false;
-    renderer->AddLight(sun);
+    bool running = true;
+    uint32 W = devInfo.width;
+    uint32 H = devInfo.height;
+    NkEventSystem &events = NkEvents();
 
-    // 5. Preparation du cube a deux metres devant la camera
-    NkMeshSystem* meshSystem = new NkMeshSystem();
-    NkVec3f forward = (camera.target - camera.position).Normalized();
-    NkVec3f cubePos = camera.position + forward * 2.0f; // Exactement deux metres devant la camera
+    events.AddEventCallback<NkWindowCloseEvent>([&](NkWindowCloseEvent *) { running = false; });
+    events.AddEventCallback<NkKeyPressEvent>([&](NkKeyPressEvent *e) {
+        if (e->GetKey() == NkKey::NK_ESCAPE) running = false;
+    });
+    events.AddEventCallback<NkWindowResizeEvent>([&](NkWindowResizeEvent *e) {
+        uint32 w = (uint32)e->GetWidth(), h = (uint32)e->GetHeight();
+        if (w > 0 && h > 0 && (w != W || h != H)) {
+            W = w; H = h;
+            renderer->OnResize(w, h);
+        }
+    });
 
-    NkMat4f cubeTransform = NkMat4f::Translate(cubePos) * NkMat4f::Scale(1.0f, 1.0f, 1.0f);
+    NkClock clock;
+    float32 totalTime = 0.0f;
+    tuto::NkTutoCapture capture;
 
-    NkDrawCall3D cubeDrawCall;
-    cubeDrawCall.mesh = meshSystem->GetCube();
-    cubeDrawCall.transform = cubeTransform;
-    cubeDrawCall.color = NkVec3f(1.0f, 1.0f, 1.0f); // Teinte blanche
-    cubeDrawCall.aabb = NkAABB3D(
-        cubePos - NkVec3f(0.5f, 0.5f, 0.5f),
-        cubePos + NkVec3f(0.5f, 0.5f, 0.5f)
-    );
+    while (running && window.IsOpen()) {
+        events.PollEvents();
+        if (!running) break;
+        if (capture.Etape(renderer, device, W, H)) break;
 
-    // Soumission du cube
-    renderer->Submit(cubeDrawCall);
+        float32 dt = clock.Tick().delta;
+        totalTime = capture.Temps(totalTime + dt);
 
-    renderer->Render();
-    return 0;
+        if (!renderer->BeginFrame()) continue;
+
+        // Camera a l'entree : position (0.0, 1.70, 1.5), cible (0.0, 1.40, -2.0)
+        NkCamera3DData camData;
+        camData.up = {0.0f, 1.0f, 0.0f};
+        camData.fovY = 70.0f;
+        camData.aspect = (float32)W / (float32)H;
+        camData.nearPlane = 0.05f;
+        camData.farPlane = 200.0f;
+
+        NkCamera3D camera(camData);
+        NkVec3f camPos = {0.0f, 1.70f, 1.50f};
+        NkVec3f camTarget = {0.0f, 1.40f, -2.00f};
+        camera.SetPosition(camPos);
+        camera.SetTarget(camTarget);
+
+        NkSceneContext sctx;
+        sctx.camera = camera;
+        sctx.time = totalTime;
+
+        // Soleil (lumiere directionnelle)
+        NkLightDesc sun;
+        sun.type = NkLightType::NK_DIRECTIONAL;
+        sun.direction = {-0.4f, -1.0f, -0.3f};
+        sun.color = {1.0f, 0.95f, 0.85f};
+        sun.intensity = 3.0f;
+        sun.castShadow = true;
+        sctx.lights.PushBack(sun);
+
+        r3d->BeginScene(sctx);
+
+        // Sol pour recevoir l'ombre du cube
+        {
+            NkDrawCall3D dc;
+            dc.mesh = meshPlane;
+            dc.transform = NkMat4f::Scale({10.0f, 1.0f, 10.0f});
+            dc.aabb = {{-10.0f, -0.01f, -10.0f}, {10.0f, 0.01f, 10.0f}};
+            dc.tint = {0.25f, 0.25f, 0.28f};
+            dc.roughness = 0.9f;
+            dc.castShadow = false;
+            r3d->Submit(dc);
+        }
+
+        // Preparation du cube a deux metres devant la camera
+        NkVec3f forward = (camTarget - camPos).Normalized();
+        NkVec3f cubePos = camPos + forward * 2.0f;
+
+        NkDrawCall3D cubeDrawCall;
+        cubeDrawCall.mesh = meshCube;
+        cubeDrawCall.transform = NkMat4f::Translate(cubePos) * NkMat4f::Scale({1.0f, 1.0f, 1.0f});
+        cubeDrawCall.tint = {1.0f, 1.0f, 1.0f};
+        cubeDrawCall.roughness = 0.4f;
+        cubeDrawCall.metallic = 0.1f;
+        cubeDrawCall.castShadow = true;
+
+        // Boîte englobante AABB monde (cubePos +- 0.5) pour eviter que le frustum culling ne le rejette
+        cubeDrawCall.aabb = {
+            {cubePos.x - 0.5f, cubePos.y - 0.5f, cubePos.z - 0.5f},
+            {cubePos.x + 0.5f, cubePos.y + 0.5f, cubePos.z + 0.5f}
+        };
+
+        r3d->Submit(cubeDrawCall);
+
+        renderer->Present();
+        renderer->EndFrame();
+        capture.ImageRendue();
+    }
+
+    device->WaitIdle();
+    NkRenderer::Destroy(renderer);
+    NkDeviceFactory::Destroy(device);
+    window.Close();
+    return capture.CodeDeSortie(0);
 }
