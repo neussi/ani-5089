@@ -1,8 +1,28 @@
 What Load returns :
-L'appel `photo.Load("murs/nexistepas.png")` retourne `false` (valeur 0). L'image sous-jacente reste dans un état initialisé mais vide : `IsValid()` retourne `false` (valeur 0), et ses dimensions `Width()` et `Height()` retournent toutes deux 0. De même, au niveau du sous-système de rendu, `renderer->GetTextures()->Load(...)` échoue silencieusement et retourne un handle de texture nul.
+L'appel `photo.Load("murs/nexistepas.png")` retourne `false` (valeur 0).
+L'image sous-jacente reste dans un état initialisé mais vide : `IsValid()`
+retourne `false` (valeur 0), et ses dimensions `Width()` et `Height()`
+retournent toutes deux 0. De même, au niveau du sous-système de rendu,
+`renderer->GetTextures()->Load(...)` échoue silencieusement et retourne un
+handle de texture nul.
 
 Why nothing crashes :
-Le programme ne plante pas car le moteur Nkentseu met en œuvre une architecture résiliente à base de valeurs sentinelles et de textures de repli (fallback textures). Lorsque l'ouverture du fichier échoue, le moteur n'émet pas d'exception fatale et ne déréférence aucun pointeur nul : il consigne un avertissement d'erreur dans le fichier journal (`logs/app.log`) et renvoie un handle invalide. Au moment de lier les descripteurs graphiques pour le draw call du mur, le sous-système RHI remplace automatiquement le slot de texture vide par une texture par défaut interne (texture 1x1 blanche de secours). Le pipeline de shaders reçoit donc toujours une ressource mémoire valide, évitant tout crash ou interruption de la boucle de rendu.
+Le programme ne plante pas car le moteur Nkentseu met en œuvre une
+architecture résiliente à base de valeurs sentinelles et de textures de repli
+(fallback textures). Lorsque l'ouverture du fichier échoue, le moteur n'émet
+pas d'exception fatale et ne déréférence aucun pointeur nul : il consigne un
+avertissement d'erreur dans le fichier journal (`logs/app.log`) et renvoie un
+handle invalide. Au moment de lier les descripteurs graphiques pour le draw
+call du mur, le sous-système RHI remplace automatiquement le slot de texture
+vide par une texture par défaut interne (texture 1x1 blanche de secours). Le
+pipeline de shaders reçoit donc toujours une ressource mémoire valide, évitant
+tout crash ou interruption de la boucle de rendu.
 
 What the wall shows :
-Le mur affiche un aplat uni de couleur neutre (blanc cassé sous l'effet de l'éclairage directionnel ambiant), correspondant au matériau PBR standard recevant la texture de repli blanche par défaut du moteur combinée à la couleur de base (`dc.tint`). Le moteur a délibérément choisi de restituer cette texture neutre pour garantir la continuité du rendu en temps réel tout en matérialisant visuellement l'absence d'albedo personnalisé sans bloquer le reste de la scène 3D.
+Le mur affiche un aplat uni de couleur neutre (blanc cassé sous l'effet de
+l'éclairage directionnel ambiant), correspondant au matériau PBR standard
+recevant la texture de repli blanche par défaut du moteur combinée à la
+couleur de base (`dc.tint`). Le moteur a délibérément choisi de restituer
+cette texture neutre pour garantir la continuité du rendu en temps réel tout
+en matérialisant visuellement l'absence d'albedo personnalisé sans bloquer le
+reste de la scène 3D.

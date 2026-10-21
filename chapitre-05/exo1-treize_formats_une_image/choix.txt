@@ -1,8 +1,30 @@
 My format for a wall :
-Pour texturer un mur opaque (béton, briques ou plâtre), je choisis le format JPEG. Pour un mur standard sans canal de transparence alpha, ce format offre le meilleur compromis opérationnel pour le chargement et la distribution des ressources.
+Pour texturer un mur opaque (béton, briques ou plâtre), je choisis le format
+JPEG. Pour un mur standard sans canal de transparence alpha, ce format offre
+le meilleur compromis opérationnel pour le chargement et la distribution des
+ressources.
 
 Why :
-Les mesures sur le disque montrent un écart massif : le fichier JPEG n'occupe que 444 117 octets, contre 2 415 762 octets pour le PNG, 2 088 269 octets pour le QOI et 3 145 782 octets pour le BMP. Le JPEG permet ainsi d'économiser plus de 81 % d'espace disque par rapport au PNG et 85 % par rapport au BMP. Ce gain accélère drastiquement les temps d'I/O lors du chargement de la scène. Une fois transférée en mémoire GPU, la texture est décompressée en mémoire tampon brute (1024 x 1024 x 4 = 4 194 304 octets soit 4 Mo) quel que soit le format d'origine : le surcoût mémoire en VRAM est donc rigoureusement identique. La compression avec perte du JPEG sacrifie les très hautes fréquences spatiales par quantification discrète en cosinus (DCT), ce qui lisse de microscopiques micro-contrastes de rugosité du grain du béton, mais cette perte reste visuellement indétectable à distance d'observation normale dans le casque VR.
+Les mesures sur le disque montrent un écart massif : le fichier JPEG n'occupe
+que 444 117 octets, contre 2 415 762 octets pour le PNG, 2 088 269 octets pour
+le QOI et 3 145 782 octets pour le BMP. Le JPEG permet ainsi d'économiser plus
+de 81 % d'espace disque par rapport au PNG et 85 % par rapport au BMP. Ce gain
+accélère drastiquement les temps d'I/O lors du chargement de la scène. Une
+fois transférée en mémoire GPU, la texture est décompressée en mémoire tampon
+brute (1024 x 1024 x 4 = 4 194 304 octets soit 4 Mo) quel que soit le format
+d'origine : le surcoût mémoire en VRAM est donc rigoureusement identique. La
+compression avec perte du JPEG sacrifie les très hautes fréquences spatiales
+par quantification discrète en cosinus (DCT), ce qui lisse de microscopiques
+micro-contrastes de rugosité du grain du béton, mais cette perte reste
+visuellement indétectable à distance d'observation normale dans le casque VR.
 
 What surprised me :
-Ce qui m'a le plus surpris est le comportement du format TGA : le moteur a écrit le fichier sans erreur (produisant un fichier de 3 145 772 octets), mais lors de la relecture, `photo.Load("image.tga")` a échoué et retourné une image invalide (`illisible`). Cela illustre parfaitement le piège souligné dans le cours : une écriture réussie ne garantit absolument pas une relecture fonctionnelle. J'ai également été surpris par les performances du format QOI qui parvient à être plus compact sans perte que le PNG (2 088 269 octets contre 2 415 762 octets) tout en conservant une géométrie exacte de 1024 x 1024.
+Ce qui m'a le plus surpris est le comportement du format TGA : le moteur a
+écrit le fichier sans erreur (produisant un fichier de 3 145 772 octets), mais
+lors de la relecture, `photo.Load("image.tga")` a échoué et retourné une image
+invalide (`illisible`). Cela illustre parfaitement le piège souligné dans le
+cours : une écriture réussie ne garantit absolument pas une relecture
+fonctionnelle. J'ai également été surpris par les performances du format QOI
+qui parvient à être plus compact sans perte que le PNG (2 088 269 octets
+contre 2 415 762 octets) tout en conservant une géométrie exacte de 1024 x
+1024.

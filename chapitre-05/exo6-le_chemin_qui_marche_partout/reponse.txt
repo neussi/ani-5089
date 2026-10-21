@@ -1,13 +1,39 @@
 What changed :
-Ce qui change d'un dossier à l'autre est le répertoire de travail courant (Current Working Directory ou CWD) attribué au processus par le système d'exploitation lors de son lancement. Lorsque le programme est exécuté depuis le dossier racine du projet, la résolution du chemin relatif `murs/beton.png` réussit immédiatement car le sous-dossier `murs/` s'y trouve. En revanche, lorsque le terminal est positionné dans `Build/Bin/Release-Linux/Ch05Exo06Chemin/`, le système tente d'ouvrir `./murs/beton.png` à cet endroit précis. Comme le système de build compile le binaire sans recopier automatiquement l'arborescence des assets à côté de l'exécutable, le fichier est physiquement introuvable. L'erreur ne provient donc d'aucun bug dans le code de rendu 3D, mais de la dépendance aveugle du chemin relatif à l'environnement de commande.
+Ce qui change d'un dossier à l'autre est le répertoire de travail courant
+(Current Working Directory ou CWD) attribué au processus par le système
+d'exploitation lors de son lancement. Lorsque le programme est exécuté depuis
+le dossier racine du projet, la résolution du chemin relatif `murs/beton.png`
+réussit immédiatement car le sous-dossier `murs/` s'y trouve. En revanche,
+lorsque le terminal est positionné dans `Build/Bin/Release-
+Linux/Ch05Exo06Chemin/`, le système tente d'ouvrir `./murs/beton.png` à cet
+endroit précis. Comme le système de build compile le binaire sans recopier
+automatiquement l'arborescence des assets à côté de l'exécutable, le fichier
+est physiquement introuvable. L'erreur ne provient donc d'aucun bug dans le
+code de rendu 3D, mais de la dépendance aveugle du chemin relatif à
+l'environnement de commande.
 
 What LocateResource tries :
 Selon les spécifications et commentaires de l'en-tête `NkPath.h`, la fonction `NkPath::LocateResource` s'affranchit du dossier de lancement en testant successivement quatre localisations dans un ordre déterministe :
-1. Le dossier de travail courant (préservant la compatibilité avec un lancement à la racine du projet) ;
-2. Le dossier de l'exécutable (adapté aux bundles et paquets autonomes où les données accompagnent le binaire) ;
-3. Les répertoires parents de l'exécutable, en remontant jusqu'à 8 niveaux hiérarchiques (permettant au binaire situé dans `Build/Bin/...` de retrouver la racine du projet et ses sous-dossiers de ressources) ;
+1. Le dossier de travail courant (préservant la compatibilité avec un
+lancement à la racine du projet) ;
+2. Le dossier de l'exécutable (adapté aux bundles et paquets autonomes où les
+données accompagnent le binaire) ;
+3. Les répertoires parents de l'exécutable, en remontant jusqu'à 8 niveaux
+hiérarchiques (permettant au binaire situé dans `Build/Bin/...` de retrouver
+la racine du projet et ses sous-dossiers de ressources) ;
 4. Les répertoires parents du dossier courant, jusqu'à 8 niveaux également.
-Si le fichier existe dans l'un de ces emplacements, la fonction retourne son chemin absolu normalisé (avec séparateurs `/`) ; dans le cas contraire, elle retourne une chaîne vide (`Empty() == true`) et émet un diagnostic dans le journal.
+Si le fichier existe dans l'un de ces emplacements, la fonction retourne son
+chemin absolu normalisé (avec séparateurs `/`) ; dans le cas contraire, elle
+retourne une chaîne vide (`Empty() == true`) et émet un diagnostic dans le
+journal.
 
 Already seen with fopen :
-Oui, honnêtement, ce comportement correspond au piège classique rencontré dès les premiers programmes en langage C avec la fonction standard `fopen(chemin, "r")`. Un chemin relatif ne dépend jamais de l'emplacement du code source ni de l'exécutable, mais uniquement du point de départ du terminal qui l'appelle. Dès que l'on clique sur un raccourci de bureau, qu'on lance le programme depuis un script ou via un IDE dont le dossier d'exécution diffère, `fopen` échoue silencieusement en retournant un pointeur `NULL`. `NkPath::LocateResource` résout exactement ce problème récurrent en automatisant la recherche remontante vers les dossiers d'actifs.
+Oui, honnêtement, ce comportement correspond au piège classique rencontré dès
+les premiers programmes en langage C avec la fonction standard `fopen(chemin,
+"r")`. Un chemin relatif ne dépend jamais de l'emplacement du code source ni
+de l'exécutable, mais uniquement du point de départ du terminal qui l'appelle.
+Dès que l'on clique sur un raccourci de bureau, qu'on lance le programme
+depuis un script ou via un IDE dont le dossier d'exécution diffère, `fopen`
+échoue silencieusement en retournant un pointeur `NULL`.
+`NkPath::LocateResource` résout exactement ce problème récurrent en
+automatisant la recherche remontante vers les dossiers d'actifs.

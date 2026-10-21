@@ -1,8 +1,30 @@
 At three metres :
-À trois mètres de distance, les deux captures (`ordinaire-3m.png` et `sdf-3m.png`) présentent une lisibilité et une clarté presque indifférenciables. À cette distance, le panneau ne sous-tend qu'un angle visuel réduit à l'écran : le pouvoir séparateur de la caméra et la résolution de projection suffisent à rendre le mot « Sortie » net, et l'interpolation bilinéaire standard de l'atlas classique masque tout artefact sans qu'un observateur puisse déceler l'avantage du champ de distance signé.
+À trois mètres de distance, les deux captures (`ordinaire-3m.png` et
+`sdf-3m.png`) présentent une lisibilité et une clarté presque
+indifférenciables. À cette distance, le panneau ne sous-tend qu'un angle
+visuel réduit à l'écran : le pouvoir séparateur de la caméra et la résolution
+de projection suffisent à rendre le mot « Sortie » net, et l'interpolation
+bilinéaire standard de l'atlas classique masque tout artefact sans qu'un
+observateur puisse déceler l'avantage du champ de distance signé.
 
 At fifty centimetres :
-À cinquante centimètres de distance, la supériorité du SDF est éclatante. Sur la capture ordinaire (`ordinaire-50cm.png`), l'agrandissement 8x de la texture produit un flou bilinéaire prononcé : les contours des lettres perdent leur mordant et semblent cotonneux. Sur la capture SDF (`sdf-50cm.png`), l'application de la règle `smoothstep(0.5 - s, 0.5 + s, dist)` avec un adoucissement maîtrisé `s = 0.045` reconstruit des contours vectoriels parfaitement tranchants, sans flou et sans effet d'escalier. Les arrondis du 'S', les fûts du 'r' et du 't' conservent la rigueur géométrique de la police d'origine.
+À cinquante centimètres de distance, la supériorité du SDF est éclatante. Sur
+la capture ordinaire (`ordinaire-50cm.png`), l'agrandissement 8x de la texture
+produit un flou bilinéaire prononcé : les contours des lettres perdent leur
+mordant et semblent cotonneux. Sur la capture SDF (`sdf-50cm.png`),
+l'application de la règle `smoothstep(0.5 - s, 0.5 + s, dist)` avec un
+adoucissement maîtrisé `s = 0.045` reconstruit des contours vectoriels
+parfaitement tranchants, sans flou et sans effet d'escalier. Les arrondis du
+'S', les fûts du 'r' et du 't' conservent la rigueur géométrique de la police
+d'origine.
 
 My conclusion :
-L'apport fondamental du SDF réside dans son efficacité mémoire spectaculaire. Les mesures de l'atlas (`atlas.txt`) démontrent que l'atlas SDF à 32 px et l'atlas ordinaire à 32 px occupent rigoureusement la même empreinte : 512 x 512 pixels en Alpha8 (soit 262 144 octets, 256 Ko). Pour approcher une netteté comparable à courte distance sans SDF, il est nécessaire de générer un atlas ordinaire à 128 px, qui requiert une texture de 2048 x 2048 pixels, soit 4 194 304 octets (4 Mo de mémoire VRAM). Le SDF divise donc la consommation mémoire par 16 tout en offrant une netteté vectorielle invariante à n'importe quelle distance dans le casque VR.
+L'apport fondamental du SDF réside dans son efficacité mémoire spectaculaire.
+Les mesures de l'atlas (`atlas.txt`) démontrent que l'atlas SDF à 32 px et
+l'atlas ordinaire à 32 px occupent rigoureusement la même empreinte : 512 x
+512 pixels en Alpha8 (soit 262 144 octets, 256 Ko). Pour approcher une netteté
+comparable à courte distance sans SDF, il est nécessaire de générer un atlas
+ordinaire à 128 px, qui requiert une texture de 2048 x 2048 pixels, soit 4 194
+304 octets (4 Mo de mémoire VRAM). Le SDF divise donc la consommation mémoire
+par 16 tout en offrant une netteté vectorielle invariante à n'importe quelle
+distance dans le casque VR.

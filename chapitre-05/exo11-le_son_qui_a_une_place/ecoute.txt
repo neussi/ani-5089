@@ -1,14 +1,42 @@
 Position 1 :
-Caméra positionnée à proximité immédiate de la fenêtre (-1.50, 1.40, -0.90), tournée vers l'ouverture extérieure. Le son de pluie (bruit rose) est perçu avec une très forte intensité sonore et une localisation latérale quasi exclusive sur l'oreille gauche. La proximité de la source (moins de 0,5 mètre) sature presque le canal gauche et procure une sensation d'immersion immédiate, comme si l'on passait la tête par la fenêtre sous l'averse.
+Caméra positionnée à proximité immédiate de la fenêtre (-1.50, 1.40, -0.90),
+tournée vers l'ouverture extérieure. Le son de pluie (bruit rose) est perçu
+avec une très forte intensité sonore et une localisation latérale quasi
+exclusive sur l'oreille gauche. La proximité de la source (moins de 0,5 mètre)
+sature presque le canal gauche et procure une sensation d'immersion immédiate,
+comme si l'on passait la tête par la fenêtre sous l'averse.
 
 Position 2 :
-Caméra placée au centre de la pièce (0.0, 1.40, 0.0) avec une visée orientée vers le mur du fond (-Z). Le son de l'averse se détache clairement à gauche à un angle d'azimut d'environ -90°. Le volume sonore est nettement plus modéré qu'en position 1, affaibli par les deux mètres qui séparent l'observateur du mur gauche, permettant de situer précisément la fenêtre dans l'espace sans avoir à la regarder.
+Caméra placée au centre de la pièce (0.0, 1.40, 0.0) avec une visée orientée
+vers le mur du fond (-Z). Le son de l'averse se détache clairement à gauche à
+un angle d'azimut d'environ -90°. Le volume sonore est nettement plus modéré
+qu'en position 1, affaibli par les deux mètres qui séparent l'observateur du
+mur gauche, permettant de situer précisément la fenêtre dans l'espace sans
+avoir à la regarder.
 
 Position 3 :
-Caméra reculée dans le coin opposé (1.80, 1.40, 1.80). La source sonore se trouve désormais à plus de 4,5 mètres de distance. Le volume est fortement atténué conformément au modèle d'atténuation inverse, et le son semble parvenir depuis l'avant-gauche lointain. Malgré cette baisse d'amplitude, l'angle spatial reste perceptible et incite naturellement l'utilisateur à tourner la tête vers la source.
+Caméra reculée dans le coin opposé (1.80, 1.40, 1.80). La source sonore se
+trouve désormais à plus de 4,5 mètres de distance. Le volume est fortement
+atténué conformément au modèle d'atténuation inverse, et le son semble
+parvenir depuis l'avant-gauche lointain. Malgré cette baisse d'amplitude,
+l'angle spatial reste perceptible et incite naturellement l'utilisateur à
+tourner la tête vers la source.
 
 Without positional :
-Lorsque l'on désactive la spatialisation (positional = false), toute sensation de distance et d'orientation disparaît instantanément. Quelle que soit la position ou l'orientation de la caméra dans la pièce, le bruit de pluie retentit avec le même volume maximal et identique dans les deux oreilles. Le son ne vient plus de la fenêtre mais paraît résonner à l'intérieur même du crâne, brisant totalement l'illusion de réalité virtuelle.
+Lorsque l'on désactive la spatialisation (positional = false), toute sensation
+de distance et d'orientation disparaît instantanément. Quelle que soit la
+position ou l'orientation de la caméra dans la pièce, le bruit de pluie
+retentit avec le même volume maximal et identique dans les deux oreilles. Le
+son ne vient plus de la fenêtre mais paraît résonner à l'intérieur même du
+crâne, brisant totalement l'illusion de réalité virtuelle.
 
 What the measurements show :
-Les mesures objectives issues de RenderToBuffer corroborent au décibel près l'expérience ressentie au casque. Lorsque la source est placée latéralement avec spatialisation active (1), l'isolation est absolue : à gauche, le RMS de l'oreille gauche vaut 0,0800 tandis que l'oreille droite est à 0,0000 ; à droite, la situation s'inverse rigoureusement (G 0,0000 contre D 0,0800). Devant l'auditeur, le signal est parfaitement équilibré entre les deux oreilles à G 0,0567 et D 0,0567. Sans spatialisation (0), le moteur ignore coordonnées et distance, délivrant un niveau fixe et non atténué de 0,1573 sur les deux canaux pour toutes les orientations.
+Les mesures objectives issues de RenderToBuffer corroborent au décibel près
+l'expérience ressentie au casque. Lorsque la source est placée latéralement
+avec spatialisation active (1), l'isolation est absolue : à gauche, le RMS de
+l'oreille gauche vaut 0,0800 tandis que l'oreille droite est à 0,0000 ; à
+droite, la situation s'inverse rigoureusement (G 0,0000 contre D 0,0800).
+Devant l'auditeur, le signal est parfaitement équilibré entre les deux
+oreilles à G 0,0567 et D 0,0567. Sans spatialisation (0), le moteur ignore
+coordonnées et distance, délivrant un niveau fixe et non atténué de 0,1573 sur
+les deux canaux pour toutes les orientations.

@@ -2,10 +2,30 @@ atlas : 512 x 512
 image : 72 x 32
 
 My font and its size :
-La police utilisée est `Inter` (`NkEmbeddedFontId::Inter`), une police vectorielle moderne sans-serif d'interface directement embarquée dans le binaire du moteur Nkentseu via `NkFontEmbedded` (sans dépendance envers un fichier TTF externe sur le disque). La taille configurée lors de l'ajout à l'atlas est de 32 pixels (`32.f`). Le mot « Sortie » est composé des 6 glyphes S, o, r, t, i, e dont la somme des avances horizontales (`advanceX`) donne une largeur totale de 72 pixels. La hauteur calculée par `ascent - descent` est de 32 pixels, avec une ligne de base calée à `ascent` pixels du bord supérieur.
+La police utilisée est `Inter` (`NkEmbeddedFontId::Inter`), une police
+vectorielle moderne sans-serif d'interface directement embarquée dans le
+binaire du moteur Nkentseu via `NkFontEmbedded` (sans dépendance envers un
+fichier TTF externe sur le disque). La taille configurée lors de l'ajout à
+l'atlas est de 32 pixels (`32.f`). Le mot « Sortie » est composé des 6 glyphes
+S, o, r, t, i, e dont la somme des avances horizontales (`advanceX`) donne une
+largeur totale de 72 pixels. La hauteur calculée par `ascent - descent` est de
+32 pixels, avec une ligne de base calée à `ascent` pixels du bord supérieur.
 
 At three metres :
-À trois mètres de distance (caméra placée en (-0.70 ; 1.70 ; 1.00) orientée vers le panneau), l'objet couvre une emprise modérée dans la projection perspective. Le mot « Sortie » est parfaitement lisible, propre et stable : l'anticrénelage en niveaux de gris (Alpha8) lisse impeccablement les diagonales et les arrondis, et le contraste entre les lettres blanches et le fond vert sécurité permet une détection visuelle instantanée sans aucun scintillement.
+À trois mètres de distance (caméra placée en (-0.70 ; 1.70 ; 1.00) orientée
+vers le panneau), l'objet couvre une emprise modérée dans la projection
+perspective. Le mot « Sortie » est parfaitement lisible, propre et stable :
+l'anticrénelage en niveaux de gris (Alpha8) lisse impeccablement les
+diagonales et les arrondis, et le contraste entre les lettres blanches et le
+fond vert sécurité permet une détection visuelle instantanée sans aucun
+scintillement.
 
 At fifty centimetres :
-À cinquante centimètres (caméra rapprochée en (-0.70 ; 2.20 ; -1.50)), le panneau occupe une portion majeure de la vue de l'utilisateur. La texture 72x32 pixels subit alors un fort grossissement géométrique. Sous l'effet du filtrage bilinéaire, les transitions nettes des contours se transforment en un dégradé flou progressif : les lettres perdent leur précision géométrique. Cette observation met en lumière la limitation inhérente aux atlas de glyphes standards en réalité virtuelle dès que l'utilisateur s'approche des éléments textuels dans l'espace 3D.
+À cinquante centimètres (caméra rapprochée en (-0.70 ; 2.20 ; -1.50)), le
+panneau occupe une portion majeure de la vue de l'utilisateur. La texture
+72x32 pixels subit alors un fort grossissement géométrique. Sous l'effet du
+filtrage bilinéaire, les transitions nettes des contours se transforment en un
+dégradé flou progressif : les lettres perdent leur précision géométrique.
+Cette observation met en lumière la limitation inhérente aux atlas de glyphes
+standards en réalité virtuelle dès que l'utilisateur s'approche des éléments
+textuels dans l'espace 3D.

@@ -1,8 +1,32 @@
 Lines of my first sound :
-Dans le code source de premier-son.cpp, le cycle de vie complet du son s'étend de la configuration et l'initialisation de AudioEngine (ligne 39) jusqu'à son arrêt propre Shutdown() après la boucle de rendu (ligne 184), soit 146 lignes de code au total en englobant la boucle principale. Si l'on ne compte que les instructions audio effectives du moteur (configuration audioCfg, Initialize, GenerateTone, Play, Shutdown et AudioLoader::Free), l'intégration du premier son ne nécessite que 6 lignes de code C++.
+Dans le code source de premier-son.cpp, le cycle de vie complet du son s'étend
+de la configuration et l'initialisation de AudioEngine (ligne 39) jusqu'à son
+arrêt propre Shutdown() après la boucle de rendu (ligne 184), soit 146 lignes
+de code au total en englobant la boucle principale. Si l'on ne compte que les
+instructions audio effectives du moteur (configuration audioCfg, Initialize,
+GenerateTone, Play, Shutdown et AudioLoader::Free), l'intégration du premier
+son ne nécessite que 6 lignes de code C++.
 
 Latency computed and reported :
-La durée théorique d'un tampon de 256 trames échantillonnées à 48 000 Hz est calculée exactement par la formule T = 256 / 48000 s = 5,333 ms (0,00533 s). Le moteur rapporte via GetLatencyMs() une latence réelle mesurée de 15 ms sous le dorsal ALSA. Cette valeur de 15 ms correspond exactement à un triple tamponnage matériel (3 x 5,33 ms = 16 ms) mis en place par la couche audio pour prévenir tout décrochage sonore (underrun). À titre de comparaison avec le rendu graphique, une trame vidéo à 60 images par seconde dure 16,67 ms (et 11,11 ms à 90 Hz en VR) : la latence audio de 15 ms reste inférieure ou égale au temps d'affichage d'une seule image, garantissant une synchronisation audiovisuelle imperceptible pour l'utilisateur.
+La durée théorique d'un tampon de 256 trames échantillonnées à 48 000 Hz est
+calculée exactement par la formule T = 256 / 48000 s = 5,333 ms (0,00533 s).
+Le moteur rapporte via GetLatencyMs() une latence réelle mesurée de 15 ms sous
+le dorsal ALSA. Cette valeur de 15 ms correspond exactement à un triple
+tamponnage matériel (3 x 5,33 ms = 16 ms) mis en place par la couche audio
+pour prévenir tout décrochage sonore (underrun). À titre de comparaison avec
+le rendu graphique, une trame vidéo à 60 images par seconde dure 16,67 ms (et
+11,11 ms à 90 Hz en VR) : la latence audio de 15 ms reste inférieure ou égale
+au temps d'affichage d'une seule image, garantissant une synchronisation
+audiovisuelle imperceptible pour l'utilisateur.
 
 Why not in the render loop :
-Le moteur audio ne doit jamais être initialisé ou déclenché aveuglément à l'intérieur de la boucle de rendu (render loop). Initialiser le moteur alloue les tampons de mixage matériels, configure le périphérique ALSA et démarre le fil d'exécution temps réel du mixer : le refaire à chaque image provoquerait un écroulement immédiat des performances et saturerait le pilote. De même, appeler Play() à chaque frame lancerait 60 nouvelles voix par seconde, saturant la polyphonie et créant une cacophonie saturée. Le son fonctionne de manière asynchrone sur son propre thread temps réel cadencé à 5,33 ms (pour 256 échantillons), totalement découplé des fluctuations du framerate graphique de la carte vidéo afin d'éviter tout craquement ou saut de lecture.
+Le moteur audio ne doit jamais être initialisé ou déclenché aveuglément à
+l'intérieur de la boucle de rendu (render loop). Initialiser le moteur alloue
+les tampons de mixage matériels, configure le périphérique ALSA et démarre le
+fil d'exécution temps réel du mixer : le refaire à chaque image provoquerait
+un écroulement immédiat des performances et saturerait le pilote. De même,
+appeler Play() à chaque frame lancerait 60 nouvelles voix par seconde,
+saturant la polyphonie et créant une cacophonie saturée. Le son fonctionne de
+manière asynchrone sur son propre thread temps réel cadencé à 5,33 ms (pour
+256 échantillons), totalement découplé des fluctuations du framerate graphique
+de la carte vidéo afin d'éviter tout craquement ou saut de lecture.
