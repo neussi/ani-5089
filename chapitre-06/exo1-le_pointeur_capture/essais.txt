@@ -1,0 +1,28 @@
+With CaptureMouse alone:
+Le curseur est masque et la fenetre recoit les mouvements meme lorsque
+l'on pousse la souris au-dela des bords. Cependant, rien ne retient
+physiquement le pointeur : il sort de la zone client et continue de se
+deplacer sur le bureau ou sur les autres ecrans. CaptureMouse redirige
+les messages vers la fenetre, mais n'empeche pas le curseur de sortir.
+
+What holds it in:
+L'appel qui maintient le pointeur a l'interieur est ClipMouseToClient(true).
+Il demande au systeme d'exploitation (via ClipCursor sous Win32 ou par
+confinement XGrabPointer sous X11) de restreindre de maniere stricte la zone
+de deplacement du curseur aux coordonnees du rectangle client de la fenetre.
+
+Two presses in a row:
+Apres avoir appuye deux fois de suite sur la touche de capture (C), un seul
+appui sur la touche de liberation (Echap) ne fait pas reapparaitre le
+curseur : le pointeur reste invisible. Comme le precise le commentaire de
+ShowMouse dans NkWindow.h, la fonction sous-jacente du systeme (ShowCursor)
+gere un compteur d'affichage et non un booleen pur. Deux appels a false
+demandent deux appels a true pour repasser le compteur a zero ou plus.
+
+Closing without releasing:
+En reprenant le pointeur puis en fermant la fenetre par sa croix sans
+appuyer sur la touche de liberation, le confinement applique par le systeme
+survit a la destruction de la fenetre si elle n'est pas nettoyee. Le
+pointeur reste alors bloque dans l'espace rectangulaire precedemment occupe
+par la fenetre. Le programme doit donc toujours appeler ClipMouseToClient(false)
+et ShowMouse(true) lors de NkWindowCloseEvent et avant de terminer.

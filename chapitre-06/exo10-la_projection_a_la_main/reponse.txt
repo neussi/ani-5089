@@ -1,0 +1,28 @@
+Where the off-centring lives:
+The off-centring lives in the third column of the projection matrix, in
+coefficients mat[2][0] and mat[2][1] (column 2, rows 0 and 1). In the clip-space
+transform, they multiply the view-space depth z: x_clip = x * mat[0][0] +
+z * mat[2][0], and y_clip = y * mat[1][1] + z * mat[2][1]. After division by
+w_clip = -z, these terms become constant translation offsets in Normalized
+Device Coordinates: -mat[2][0] and -mat[2][1]. They shift the optical centre
+(principal point) across the image to align with the headset lens and the
+wearer's pupil, without introducing perspective keystoning or distortion.
+
+What these terms are worth when symmetric:
+When the field of view is symmetric, the left angle equals minus the right
+angle (angleLeft = -angleRight) and the bottom angle equals minus the top angle
+(angleDown = -angleUp). Because the tangent function is odd, tanLeft = -tanRight
+and tanDown = -tanUp. The numerators tanRight + tanLeft and tanUp + tanDown are
+both identically 0.0. The off-centring coefficients evaluate to exactly
+mat[2][0] = 0.000000 and mat[2][1] = 0.000000. The optical centre is therefore
+placed squarely at the geometric centre (0, 0) of the viewport.
+
+What else I checked:
+I checked the asymmetrical configuration of the Quest 2 left eye (left -52 deg,
+right 45 deg, up 48 deg, down -50 deg) by comparing my hand-written matrix
+against the engine's NkCamera3D using SetNearFar(0.05, 100) and SetFovAsym.
+Here, the horizontal off-centring term mat[2][0] evaluates to approximately
+-0.1228 and the vertical term mat[2][1] evaluates to approximately -0.0352.
+Comparing all sixteen coefficients against NkCamera3D::GetProj() confirmed an
+exact match across all four rows, with a largest gap of 0.000000, identical to
+the float precision of the engine.

@@ -1,0 +1,8 @@
+yaw 90, pitch 0 : expected (-1.0, 0.0, 0.0), got (-1.0, 0.0, 0.0), OK
+yaw 0, pitch 30 : expected (0.0, 0.5, -0.866), got (0.0, 0.5, -0.866), OK
+yaw -90, pitch 0 : expected (1.0, 0.0, 0.0), got (1.0, 0.0, 0.0), OK
+exit code: 0
+yaw 90, pitch 0 : expected (-1.0, 0.0, 0.0), got (1.0, 0.0, 0.0), FAIL
+yaw 0, pitch 30 : expected (0.0, 0.5, -0.866), got (0.0, 0.5, -0.866), OK
+yaw -90, pitch 0 : expected (1.0, 0.0, 0.0), got (-1.0, 0.0, 0.0), FAIL
+exit code: 1

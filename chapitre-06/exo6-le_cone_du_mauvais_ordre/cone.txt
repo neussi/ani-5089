@@ -1,0 +1,25 @@
+What the world does:
+Dans l'ordre correct (yaw*pitch), tourner la tete sur un tour complet avec le
+regard leve a 30 degres maintient l'horizon droit et la hauteur du regard
+constante a 30.0 degres. Le monde defile horizontalement de maniere naturelle.
+Dans l'ordre fautif (pitch*yaw), le monde se met a tanguer et a basculer en
+roulis de facon anormale : en tournant vers 90 degres, le regard retombe sur
+l'horizon (hauteur 0.0 deg), et a 180 degres vers l'arriere, le regard pointe
+vers le bas a -30.0 degres. L'horizon s'incline fortement de travers.
+
+Around which axis:
+L'axe du cone est l'axe horizontal fixe du monde X. Dans l'ordre fautif, la
+rotation de tangage s'effectue autour de l'axe X global au lieu de suivre
+l'axe transversal de la tete. Lorsque le lacet atteint 90 degres, le vecteur
+de regard est parallele a l'axe X : la rotation de tangage autour de X ne
+produit alors aucune composante verticale, d'ou la hauteur de 0.0 degre
+mesuree. A 180 degres, la rotation autour de X inverse l'inclinaison, plongeant
+le regard a -30.0 degres. Les hauteurs mesurees dessinent un cone incline sur X.
+
+The faulty order:
+Le produit fautif est pitch*yaw (qTangage * qLacet). En appliquant le lacet en
+premier puis le tangage a gauche, le tangage agit dans le repere fixe du monde
+et non dans le repere tourne de la tete. Pour qu'une tete suive un cou
+reel, le tangage doit etre applique selon l'axe transversal des yeux (repere
+local), puis compose avec le lacet autour de l'axe vertical du monde, ce qui
+impose mathematiquement le produit yaw*pitch.

@@ -1,0 +1,8 @@
+t = 3.0 s, frames = 180, raw = 2, yaw = 41.3 deg
+t = 4.0 s, frames = 240, raw = 2, yaw = 55.0 deg
+t = 5.0 s, frames = 300, raw = 2, yaw = 68.8 deg
+t = 6.0 s, frames = 360, raw = 2, yaw = 82.5 deg
+t = 7.0 s, frames = 420, raw = 2, yaw = 96.3 deg
+t = 8.0 s, frames = 480, raw = 2, yaw = 110.0 deg
+t = 9.0 s, frames = 540, raw = 2, yaw = 123.8 deg
+t = 10.0 s, frames = 600, raw = 2, yaw = 137.5 deg

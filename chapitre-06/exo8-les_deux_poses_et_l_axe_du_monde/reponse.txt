@@ -1,0 +1,28 @@
+When the two methods agree:
+Both methods agree perfectly when the head is in the neutral pose (neutral),
+looking straight ahead towards -Z with zero rotation. In this upright
+orientation, the head's local right vector coincides exactly with the world's
+X axis (1, 0, 0). Consequently, both methods yield identical eye positions:
+L (0.2685, 1.7000, 1.2000) and R (0.3315, 1.7000, 1.2000), with a measured gap
+of exactly 0.0 mm. This perfect match while looking straight ahead is dangerous
+because it can easily lead a developer to believe the calculation is correct.
+
+When they diverge:
+The two methods diverge as soon as the head rotates. For roll 30 (head tilted
+30 degrees sideways), the interpupillary axis tilts in the XY plane: the left
+eye drops to y = 1.6842 m and shifts to x = 0.2727 m, whereas the world-axis
+method leaves y at 1.7000 m. The spatial gap between the two left eye positions
+is 16.3 mm. For yaw 90 (head turned 90 degrees), the divergence is massive: the
+head's right vector rotates to align with the room's Z axis, placing the eyes
+at z = 1.2315 m and z = 1.1685 m. The world-axis method still offsets along X,
+producing a discrepancy of 44.5 mm (sqrt(2) * 31.5 mm), nearly the entire IPD.
+
+What a visitor would feel:
+A visitor wearing a headset with eyes locked to the world's X axis would suffer
+from severe visual confusion, eye strain, and motion sickness. Human stereo
+depth perception relies on retinal disparity perpendicular to the line of
+sight. At yaw 90, offsetting along the world X axis puts the disparity along
+the visual axis or creates vertical disparity when tilting: the brain cannot
+fuse the two retinal images into a coherent 3D scene, producing double vision
+(diplopia) and the impression that the world shears and squashes unnaturally
+whenever the head moves.

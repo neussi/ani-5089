@@ -1,0 +1,30 @@
+What differs most:
+The regions that differ most are located along the vertical silhouettes and
+edges of objects located close to the observer, particularly the edges of the
+wooden table and its legs, the frame of the window, and the door opening. In
+difference.png, these edges stand out as bright white and grey contours against
+the dark backdrop, reaching channel differences up to 94 (scaled by four to
+saturate at 255). A total of 78421 pixels out of 460800 show a gap greater
+than 1 between the left and right eyes.
+
+Why there:
+Horizontal binocular disparity is inversely proportional to depth: nearby
+objects exhibit a much larger angular shift between the two vantage points than
+distant walls. At the boundary of an object, this horizontal shift reveals
+regions that are visible to one eye but occluded to the other (monocular
+occlusion). A pixel that samples the dark wood of a table leg in the left eye
+samples the bright floor or wall in the right eye, yielding a huge color gap.
+Conversely, large uniform surfaces show little difference even when shifted,
+because a uniform color shifted onto itself produces identical values. The
+difference image thus acts directly as an optical depth and occlusion map.
+
+What the black proves:
+The pitch-black image (difference-vue-oubliee.png, with 0 differing pixels out
+of 460800 and a max gap of 0) proves that when both cameras share the same
+position, the two rendering pipelines execute strictly deterministically,
+yielding identical outputs. This proves conclusively that the 78421 differing
+pixels in difference.png stem entirely from the 63 mm interpupillary offset,
+and not from animation noise, shader jitter, or timestamp discrepancies.
+However, black alone does not prove the images are correct: two blank white
+targets also yield a black subtraction. It is meaningful only because both
+individual eye images are properly rendered views of the 3D room.

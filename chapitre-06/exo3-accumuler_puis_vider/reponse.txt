@@ -1,0 +1,30 @@
+Reading the module:
+La lecture directe du module (NkInput.MouseRawDeltaX) continue de deriver a
+vitesse constante meme apres l'arret complet de la souris physique (de 41.5 a
+110.3 degres entre 4 et 9 secondes, soit un rythme d'environ 13.8 deg/s).
+Le module d'entree conserve en memoire la valeur du dernier evenement recu
+(ici 2 comptes de capteur) et ne la remet jamais a zero en l'absence de nouveau
+mouvement, provoquant une rotation continue non sollicitee de la tete.
+
+Accumulated and emptied:
+La version accumulee puis videe a chaque trame se stabilise immediatement a
+12.0 degres des que la souris s'arrete. Les evenements de deplacement survenus
+pendant la trame sont additionnes, appliques au lacet de la camera, puis la
+somme locale est remise a zero. Quand la souris ne bouge plus, aucun nouvel
+evenement n'est depile, la somme reste a zero et la tete s'immobilise
+parfaitement a son orientation finale, sans aucune derive.
+
+Accumulated without emptying:
+La version qui accumule sans jamais vider explose tres rapidement (de 96.3 a
+plus de 3700 degres en cinq secondes). L'accumulateur retient l'integralite
+des deplacements cumules depuis le debut (environ 105 comptes). A chaque trame,
+au lieu d'ajouter seulement le nouveau delta de la trame courante, le programme
+re-ajoute l'integralite de tout l'historique passe. La vitesse de rotation
+devient proportionnelle au temps ecoule et fait tournoyer la scene a l'infini.
+
+What emptying does:
+Vider l'accumulateur une fois par trame assure le pont indispensable entre
+les deux horloges : celle des evenements materiels (asynchrones, irreguliers)
+et celle du rendu (cadence fixe, 60 Hz). L'action de vider isole strictement
+le travail effectue durant l'intervalle d'une image donnee et empeche que les
+mouvements du passe ne soient rejoues aux images suivantes.

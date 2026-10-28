@@ -1,0 +1,28 @@
+My sensitivity:
+La sensibilite choisie est de 0.002 radian par coup de capteur de souris
+(soit environ 0.1146 degre par unite de mouvement brut). Cette valeur est
+conservee constante durant toute la mesure.
+
+Drift speed: 13.7 deg/s
+La vitesse de derive est calculee a partir de deux lignes eloignees de
+derive.txt : la ligne a t = 3.0 s (yaw = 41.3 deg) et la ligne a t = 10.0 s
+(yaw = 137.5 deg). L'ecart angulaire est de 137.5 - 41.3 = 96.2 degres sur
+un intervalle de 10.0 - 3.0 = 7.0 secondes, ce qui donne 96.2 / 7.0 = 13.74
+deg/s, arrondi a 13.7 deg/s.
+
+Where this number comes from:
+Ce chiffre s'explique directement par le produit de la cadence d'affichage,
+de la valeur brute lue et de la sensibilite. A 60 images par seconde (vsync),
+chaque seconde compte 60 images. La derniere valeur enregistree dans le champ
+rawX etant de 2 unites, chaque image incremente le lacet de 2 * 0.002 = 0.004
+radian. En une seconde, le lacet augmente donc de 60 * 0.004 = 0.240 radian.
+Converti en degres (0.240 * 180 / pi), on obtient 13.75 deg/s, ce qui
+correspond parfaitement aux 13.7 deg/s mesures empiriquement.
+
+Why it does not stop:
+La derive ne s'arrete jamais parce que le module d'entree ne remet pas a zero
+la valeur brute quand la souris s'immobilise. NkInput.MouseRawDeltaX() retourne
+le dernier delta brut recu du pilote systeme (ici raw = 2). Quand la main lache
+la souris, aucun nouvel evenement physique n'arrive pour ecraser cette valeur.
+Comme la boucle de rendu lit ce champ a chaque image sans qu'un accumulateur
+externe ne soit vide, le programme rejoue indefiniment le dernier deplacement.

@@ -1,0 +1,25 @@
+Why this direction:
+Dans le repere direct de la salle, l'axe vertical est +Y, la droite est +X
+et le regard vers l'avant pointe selon -Z. Une rotation de lacet positive de
++90 degres correspond a une rotation trigonometrique d'un quart de tour autour
+de l'axe vertical +Y (en regardant du haut vers le bas). Le vecteur initial
+(0, 0, -1) pivote donc vers la gauche, s'alignant exactement sur la direction
+(-1, 0, 0). Ce resultat decoule directement du repere direct et ne depend pas
+de la formule de calcul elle-meme.
+
+The check that can say no:
+Le test avec un lacet de 90 degres et un tangage nul est concu pour echouer
+immediatement en cas d'inversion de signe dans Regard(). Lorsque le signe est
+inverse, le calcul produit (-sin(-90), 0, -cos(-90)) = (+1.0, 0.0, 0.0) au
+lieu de (-1.0, 0.0, 0.0). La comparaison avec le vecteur attendu detecte un
+ecart de 2.0 unites sur X, affiche explicitement FAIL et fait renvoyer le code
+de retour 1 par le programme, empechant toute regression silencieuse.
+
+What the mouse did not allow:
+La souris introduit de l'aleatoire : des deltas variables, un deplacement
+manuel approximatif et la necessite d'une fenetre graphique avec une personne
+physique derriere l'ecran pour juger du resultat a l'oeil nu. La methode
+PoserTete permet de positionner la tete sur des angles exacts et de tester
+le comportement mathematique sans ouvrir de fenetre, en une fraction de
+seconde a chaque compilation, avec un verdict binaire fiable donne par le
+code de sortie de l'executable.

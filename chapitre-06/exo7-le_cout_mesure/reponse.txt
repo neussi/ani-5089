@@ -1,0 +1,27 @@
+The ratio:
+In Release with optimization enabled, one million matrix compositions and
+conversions take between 51 ms and 61 ms (average 56.3 ms), while the direct
+quaternion products take between 19 ms and 23 ms (average 20.3 ms). The
+matrix route is therefore about 2.77 times slower than direct quaternions
+(56.3 / 20.3 = 2.77). In Debug, the ratio is even higher, taking around 527 ms
+versus 117 ms (ratio 4.50).
+
+The cost per frame:
+Dividing the Release execution time by one million iterations gives the cost
+of a single calculation per frame: approximately 56.3 nanoseconds for the
+matrix version and 20.3 nanoseconds for the direct quaternion version. Set
+against the total budget of one frame at 90 frames per second (11.11 ms, or
+11,111,111 nanoseconds), the matrix calculation represents 0.00051% of the
+frame budget. The direct quaternion calculation represents 0.00018% of the
+frame budget. The difference between the two is only 36 nanoseconds, which is
+0.00032% of the available frame time.
+
+What I think of the choice:
+The claim that this calculation happens once per frame for a single head and
+costs a few tens of nanoseconds is fully confirmed by the measurements (56 ns
+versus 20 ns). The simulator's choice to keep the matrix route followed by a
+conversion is completely justified: saving 36 nanoseconds (0.0003% of the
+frame budget) would produce no measurable gain in frame rate, while the matrix
+path directly aligns with the standard transformation pipeline and camera
+matrices of the graphics engine. Prematurely optimizing an isolated 56 ns
+calculation would add complexity for zero perceptual benefit.
